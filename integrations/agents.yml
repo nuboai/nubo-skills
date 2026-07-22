@@ -1,0 +1,19 @@
+agents:
+  cursor-agent:
+    skills_dir: ".cursor/skills"
+    context_file: ".cursor/rules/nubo-governance.md"
+  claude:
+    skills_dir: ".claude/skills"
+    context_file: "CLAUDE.md"
+  codex:
+    skills_dir: ".agents/skills"
+    context_file: "AGENTS.md"
+  gemini:
+    skills_dir: ".gemini/skills"
+    context_file: "GEMINI.md"
+  copilot:
+    skills_dir: ".github/skills"
+    context_file: ".github/copilot-instructions.md"
+  devin:
+    skills_dir: ".devin/skills"
+    context_file: null

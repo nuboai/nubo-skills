@@ -1,0 +1,4 @@
+# Suppress triaged false positives from SkillSpector scans.
+# Only new issues not listed here will block PRs.
+schema_version: 1
+suppressions: []

@@ -1,0 +1,374 @@
+schema_version: 2
+
+commands:
+  nb-constitution:
+    phase: constitution
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-constitution/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/constitution.md"
+        upstream_name: speckit-constitution
+    review_by: "2027-01-15"
+
+  nb-specify:
+    phase: specify
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-specify/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/specify.md"
+        upstream_name: speckit-specify
+    review_by: "2027-01-15"
+
+  nb-clarify:
+    phase: clarify
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-clarify/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/clarify.md"
+        upstream_name: speckit-clarify
+    review_by: "2027-01-15"
+
+  nb-plan:
+    phase: plan
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-plan/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/plan.md"
+        upstream_name: speckit-plan
+    review_by: "2027-01-15"
+
+  nb-tasks:
+    phase: tasks
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-tasks/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/tasks.md"
+        upstream_name: speckit-tasks
+    review_by: "2027-01-15"
+
+  nb-implement:
+    phase: implement
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-implement/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/implement.md"
+        upstream_name: speckit-implement
+    review_by: "2027-01-15"
+
+  nb-analyze:
+    phase: analyze
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-analyze/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/analyze.md"
+        upstream_name: speckit-analyze
+    review_by: "2027-01-15"
+
+  nb-converge:
+    phase: converge
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-converge/SKILL.md
+    composes:
+      - type: local
+        ref: "1.0.0"
+        path: "upstream/local/speckit-converge.md"
+        upstream_name: speckit-converge
+    review_by: "2027-01-15"
+
+  nb-checklist:
+    phase: checklist
+    layer: core
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/core/nb-checklist/SKILL.md
+    composes:
+      - type: speckit
+        ref: "v0.9.5"
+        path: "templates/commands/checklist.md"
+        upstream_name: speckit-checklist
+    review_by: "2027-01-15"
+
+  nb-interview:
+    phase: specify
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-interview/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/interview-me/SKILL.md"
+        upstream_name: interview-me
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/idea-refine/SKILL.md"
+        upstream_name: idea-refine
+    review_by: "2027-06-01"
+
+  nb-review-code:
+    phase: review
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-review-code/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/code-review-and-quality/SKILL.md"
+        upstream_name: code-review-and-quality
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/code-simplification/SKILL.md"
+        upstream_name: code-simplification
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/performance-optimization/SKILL.md"
+        upstream_name: performance-optimization
+    review_by: "2027-06-01"
+
+  nb-review-security:
+    phase: review
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-review-security/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/security-and-hardening/SKILL.md"
+        upstream_name: security-and-hardening
+      - type: external
+        repo: "trailofbits/skills"
+        ref: "cfe5d7b"
+        path: "plugins/static-analysis/skills/semgrep/SKILL.md"
+        upstream_name: static-analysis
+    review_by: "2027-06-01"
+
+  nb-review-arch:
+    phase: review
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-review-arch/SKILL.md
+    composes:
+      - type: speckit-extension
+        extension: "DyanGalih/spec-kit-architecture-guard"
+        ref: "v1.0.0"
+        command: "/speckit.architecture-guard.architecture-review"
+        upstream_name: architecture-guard
+      - type: speckit-extension
+        extension: "UmmeHabiba1312/spec-kit-architect-preview"
+        ref: "v1.0.0"
+        upstream_name: architect-preview
+      - type: speckit-extension
+        extension: "bigsmartben/spec-kit-arch"
+        ref: "v1.0.0"
+        command: "/speckit.arch.generate"
+        upstream_name: spec-kit-arch
+    review_by: "2027-06-01"
+
+  nb-test:
+    phase: test
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-test/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/browser-testing-with-devtools/SKILL.md"
+        upstream_name: browser-testing-with-devtools
+      - type: external
+        repo: "anthropics/skills"
+        ref: "1f630fd"
+        path: "skills/webapp-testing/SKILL.md"
+        upstream_name: webapp-testing
+    review_by: "2027-06-01"
+
+  nb-deploy:
+    phase: deploy
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-deploy/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/shipping-and-launch/SKILL.md"
+        upstream_name: shipping-and-launch
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/ci-cd-and-automation/SKILL.md"
+        upstream_name: ci-cd-and-automation
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/git-workflow-and-versioning/SKILL.md"
+        upstream_name: git-workflow-and-versioning
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/observability-and-instrumentation/SKILL.md"
+        upstream_name: observability-and-instrumentation
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/deprecation-and-migration/SKILL.md"
+        upstream_name: deprecation-and-migration
+    review_by: "2027-06-01"
+
+  nb-mcp:
+    phase: implement
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-mcp/SKILL.md
+    composes:
+      - type: external
+        repo: "anthropics/skills"
+        ref: "1f630fd"
+        path: "skills/mcp-builder/SKILL.md"
+        upstream_name: mcp-builder
+    review_by: "2027-06-01"
+
+  nb-docs:
+    phase: cross-cutting
+    layer: extended
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-docs/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/documentation-and-adrs/SKILL.md"
+        upstream_name: documentation-and-adrs
+    review_by: "2027-06-01"
+
+  nb-review-skill:
+    phase: review
+    layer: extended
+    tier: amber
+    owner: "@nubo/sdlc-team"
+    command_template: commands/extended/nb-review-skill/SKILL.md
+    composes:
+      - type: local
+        path: "commands/extended/nb-review-skill/SKILL.md"
+        upstream_name: nubo-review-skill
+    review_by: "2027-03-01"
+
+  nb-debug:
+    phase: utilities
+    layer: utility
+    tier: green
+    owner: "@nubo/sdlc-team"
+    command_template: commands/utilities/nb-debug/SKILL.md
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/debugging-and-error-recovery/SKILL.md"
+        upstream_name: debugging-and-error-recovery
+    review_by: "2027-06-01"
+
+hooks:
+  before_specify:
+    - command: nb.nb-interview
+      optional: true
+      priority: 10
+  after_plan:
+    - command: nb.nb-review-arch
+      optional: true
+      priority: 10
+  after_tasks:
+    - command: nb.nb-review-arch
+      optional: true
+      priority: 10
+  after_implement:
+    - command: nb.nb-review-code
+      optional: true
+      priority: 10
+    - command: nb.nb-review-security
+      optional: true
+      priority: 20
+    - command: nb.nb-test
+      optional: true
+      priority: 30
+    - command: nb.nb-docs
+      optional: true
+      priority: 40
+  after_analyze:
+    - command: nb.nb-docs
+      optional: true
+      priority: 10
+
+presets:
+  nb-conventions:
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/context-engineering/SKILL.md"
+        upstream_name: context-engineering
+  nb-tdd:
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/test-driven-development/SKILL.md"
+        upstream_name: test-driven-development
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/doubt-driven-development/SKILL.md"
+        upstream_name: doubt-driven-development
+  nb-frontend:
+    composes:
+      - type: external
+        repo: "addyosmani/agent-skills"
+        ref: "fefc407"
+        path: "skills/frontend-ui-engineering/SKILL.md"
+        upstream_name: frontend-ui-engineering
+      - type: local
+        ref: "1.0.0"
+        path: "upstream/local/frontend-design.md"
+        upstream_name: frontend-design

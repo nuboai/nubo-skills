@@ -1,0 +1,17 @@
+id: nb-security-audit
+name: "Nubo Security Audit"
+description: "Security hardening + static analysis pass"
+hooks_profile: none
+
+steps:
+  - id: review-security
+    command: nb.nb-review-security
+  - id: arch-review
+    command: nb.nb-review-arch
+    optional: true
+  - id: review-code
+    command: nb.nb-review-code
+    optional: true
+  - id: audit-gate
+    type: gate
+    approvers: ["@nubo/security-team"]

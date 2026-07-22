@@ -1,0 +1,54 @@
+id: nb-feature-pipeline
+name: "Nubo Standard Feature Pipeline"
+description: "Standard new feature pipeline for SDD-ready projects"
+hooks_profile: default
+
+steps:
+  - id: constitution-check
+    command: nb.nb-constitution
+    type: check
+
+  - id: specify
+    command: nb.nb-specify
+
+  - id: clarify
+    command: nb.nb-clarify
+    optional: true
+
+  - id: review-spec
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: plan
+    command: nb.nb-plan
+
+  - id: tasks
+    command: nb.nb-tasks
+
+  - id: review-plan
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: implement
+    command: nb.nb-implement
+
+  - id: arch-review
+    command: nb.nb-review-arch
+    optional: true
+
+  - id: analyze
+    command: nb.nb-analyze
+
+  - id: converge
+    command: nb.nb-converge
+
+  - id: checklist
+    command: nb.nb-checklist
+
+  - id: review-final
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: deploy
+    command: nb.nb-deploy
+    optional: true

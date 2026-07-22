@@ -1,0 +1,39 @@
+id: nb-brownfield-onboard
+name: "Nubo Brownfield Onboarding"
+description: "Retrofit SDD governance onto an existing codebase"
+hooks_profile: arch-only
+
+steps:
+  - id: discover-codebase
+    command: nb.nb-implement
+    mode: reverse-engineer
+
+  - id: constitution
+    command: nb.nb-constitution
+
+  - id: arch-review
+    command: nb.nb-review-arch
+
+  - id: review-arch
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: docs-catchup
+    command: nb.nb-docs
+
+  - id: specify-next
+    command: nb.nb-specify
+    description: "Define the first feature to build on the now-governed codebase"
+
+  - id: plan
+    command: nb.nb-plan
+
+  - id: tasks
+    command: nb.nb-tasks
+
+  - id: implement
+    command: nb.nb-implement
+
+  - id: review-final
+    type: gate
+    approvers: ["@nubo/sdlc-team"]

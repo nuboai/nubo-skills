@@ -1,0 +1,9 @@
+id: nb-frontend
+name: "Nubo Frontend Methodology"
+version: "1.0.0"
+description: "Augment nb-implement with frontend UI engineering and design skills"
+target: nb-implement
+
+inject:
+  - skill: frontend-ui-engineering
+  - skill: frontend-design

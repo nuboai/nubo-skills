@@ -1,0 +1,12 @@
+[submodule "upstream/speckit"]
+	path = upstream/speckit
+	url = https://github.com/github/spec-kit.git
+[submodule "upstream/addyosmani"]
+	path = upstream/addyosmani
+	url = https://github.com/addyosmani/agent-skills.git
+[submodule "upstream/anthropics"]
+	path = upstream/anthropics
+	url = https://github.com/anthropics/skills.git
+[submodule "upstream/trailofbits"]
+	path = upstream/trailofbits
+	url = https://github.com/trailofbits/skills.git
