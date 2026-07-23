@@ -1,4 +1,6 @@
 schema_version: 2
+generation:
+  output_mode: plain
 commands:
   nb-constitution:
     phase: constitution
@@ -278,7 +280,8 @@ commands:
     command_template: commands/extended/nb-review-skill/SKILL.md
     composes:
     - type: local
-      path: commands/extended/nb-review-skill/SKILL.md
+      ref: 1.0.0
+      path: upstream/local/nb-review-skill.md
       upstream_name: nubo-review-skill
     review_by: '2027-03-01'
   nb-debug:

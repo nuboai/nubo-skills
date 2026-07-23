@@ -11,6 +11,13 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
+SUBMODULE_MAP = {
+    "github/spec-kit": "upstream/speckit",
+    "addyosmani/agent-skills": "upstream/addyosmani",
+    "anthropics/skills": "upstream/anthropics",
+    "trailofbits/skills": "upstream/trailofbits",
+}
+
 USER_PROMPT_COMMANDS = {
     "nb-interview": {
         "prompt_id": "scope-confirmation",
@@ -266,7 +273,93 @@ CATALOG: list[dict] = [
 ]
 
 
-def yaml_list(items: list[str], indent: int = 2) -> str:
+def load_registry() -> dict:
+    return yaml.safe_load((ROOT / "registry.yml").read_text())
+
+
+def output_mode(registry: dict | None = None) -> str:
+    reg = registry or load_registry()
+    mode = (reg.get("generation") or {}).get("output_mode", "plain")
+    return mode if mode in ("plain", "governed") else "plain"
+
+
+def resolve_upstream_path(entry: dict) -> Path | None:
+    t = entry.get("type")
+    if t == "local":
+        return ROOT / entry["path"]
+    if t == "speckit":
+        return ROOT / "upstream/speckit" / entry["path"]
+    if t == "external":
+        sub = SUBMODULE_MAP.get(entry.get("repo", ""))
+        if not sub:
+            return None
+        return ROOT / sub / entry["path"]
+    return None
+
+
+def extract_procedure_body(path: Path) -> str:
+    text = path.read_text()
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) >= 3:
+            text = parts[2].lstrip("\n")
+    lines = text.splitlines()
+    if lines and lines[0].startswith("# "):
+        text = "\n".join(lines[1:]).lstrip("\n")
+    return text.rstrip() + "\n"
+
+
+def materialize_merge_references(cmd: dict, registry_entry: dict) -> list[tuple[str, str]]:
+    layer = cmd["layer"]
+    refs_dir = ROOT / "commands" / layer / cmd["name"] / "references"
+    refs_dir.mkdir(parents=True, exist_ok=True)
+    links: list[tuple[str, str]] = []
+    for compose in registry_entry.get("composes", []):
+        upstream_name = compose.get("upstream_name", "upstream")
+        path = resolve_upstream_path(compose)
+        ref_rel = f"references/{upstream_name}.md"
+        ref_path = refs_dir / f"{upstream_name}.md"
+        if path and path.exists():
+            ref_path.write_text(extract_procedure_body(path))
+        else:
+            ref_path.write_text(
+                f"# {upstream_name}\n\nUpstream content missing. "
+                f"Run `scripts/sync-upstream.sh --checkout` in nubo-skills.\n"
+            )
+        label = upstream_name.replace("-", " ").title()
+        links.append((label, ref_rel))
+    return links
+
+
+def resolve_core_template(cmd: dict, registry_entry: dict) -> str:
+    composes = registry_entry.get("composes", [])
+    if not composes:
+        return "<!-- no upstream composes defined -->\n"
+
+    strategy = cmd["strategy"]
+    if strategy == "merge" or len(composes) > 1:
+        links = materialize_merge_references(cmd, registry_entry)
+        lines = [
+            "Follow each sub-procedure below and combine outputs into the command artifacts.",
+            "",
+        ]
+        for index, (label, ref) in enumerate(links, start=1):
+            lines.append(f"{index}. [{label}]({ref})")
+        return "\n".join(lines) + "\n"
+
+    bodies: list[str] = []
+    for compose in composes:
+        path = resolve_upstream_path(compose)
+        name = compose.get("upstream_name", "upstream")
+        if path and path.exists():
+            bodies.append(extract_procedure_body(path))
+        else:
+            bodies.append(
+                f"<!-- upstream missing: {name}. "
+                f"Run scripts/sync-upstream.sh --checkout in nubo-skills. -->\n"
+            )
+    return "\n\n---\n\n".join(bodies)
+
     pad = " " * indent
     return "\n".join(f"{pad}- {item}" for item in items)
 
@@ -289,21 +382,27 @@ def render_user_prompts(name: str) -> str:
 """
 
 
-def render_prerequisites(name: str, strategy: str) -> str:
+def render_prerequisites(name: str, strategy: str, mode: str) -> str:
     if name != "nb-review-arch":
         return ""
-    return """## Prerequisites
+    speckit_note = (
+        "Verify the following SpecKit extensions are installed "
+        "(install with `scripts/install.sh --speckit` when needed):\n"
+        if mode == "plain"
+        else "Verify the following SpecKit extensions are installed "
+        "(auto-installed by `scripts/install.sh --speckit`):\n"
+    )
+    return f"""## Prerequisites
 
-Verify the following SpecKit extensions are installed (auto-installed by `scripts/install.sh` when `.specify/` exists):
-
+{speckit_note}
 1. Check `.specify/extensions/architecture-guard/` exists.
    If missing: `specify extension add architecture-guard --from https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip`
 2. Check `.specify/presets/architect-preview/preset.yml` exists.
-   If missing: re-run `scripts/install.sh` (vendored preset with schema_version fix).
+   If missing: re-run `scripts/install.sh --speckit`.
 3. Check `.specify/extensions/arch/` exists.
    If missing: `specify extension add arch --from https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip`
 
-If any extension cannot be installed, report status "error" with details.
+If any extension cannot be installed, report the failure clearly before continuing.
 
 """
 
@@ -321,7 +420,7 @@ Before starting, gather:
 """
 
 
-def render_procedure(cmd: dict) -> str:
+def render_procedure(cmd: dict, registry_entry: dict, mode: str) -> str:
     strategy = cmd["strategy"]
     if strategy == "sequence" and cmd["name"] == "nb-review-arch":
         return """## Procedure
@@ -337,14 +436,17 @@ See [architecture guard steps](references/arch-guard-steps.md), [architect previ
 Combine outputs into a single architecture review report.
 
 """
-    if strategy in ("wrap", "merge", "standalone"):
-        extra = ""
-        if cmd["name"] == "nb-review-code":
-            extra = "\nSee [performance review](references/review-perf.md) and [simplification review](references/review-simplification.md) for detailed sub-procedures.\n"
-        if cmd["name"] == "nb-deploy":
-            extra = """
+    extra = ""
+    if cmd["name"] == "nb-deploy" and mode == "governed":
+        extra = """
 See [shipping](references/deploy-shipping.md), [CI/CD](references/deploy-cicd.md), [git workflow](references/deploy-git.md), [observability](references/deploy-observability.md), and [deprecation](references/deploy-deprecation.md) for detailed sub-procedures.
 """
+    if strategy in ("wrap", "merge", "standalone", "utility"):
+        if mode == "plain":
+            core = resolve_core_template(cmd, registry_entry)
+            return f"## Procedure\n\n{core}{extra}"
+        if cmd["name"] == "nb-review-code":
+            extra = "\nSee [performance review](references/review-perf.md) and [simplification review](references/review-simplification.md) for detailed sub-procedures.\n"
         return f"""## Procedure
 
 {{CORE_TEMPLATE}}
@@ -388,6 +490,37 @@ def render_artifacts(cmd: dict) -> str:
 {rows}
 
 """
+
+
+def render_pipeline(cmd: dict) -> str:
+    if cmd.get("utility"):
+        return ""
+    next_cmd = cmd.get("next")
+    if next_cmd is None:
+        return """## Pipeline
+
+**Terminal command** — no pipeline successor.
+
+"""
+    return f"""## Pipeline
+
+**Next command:** `/{next_cmd}`
+
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
+"""
+
+
+def render_nubo_appendix(cmd: dict) -> str:
+    if cmd["name"] == "nb-checklist":
+        return """## Nubo release gate
+
+For `specs/{NNN}-{feature}/checklist.md`:
+
+- Record gate result (`SHIP` / `NO SHIP`), pre-ship checks, and validation log only.
+- Do **not** write pipeline routing in `checklist.md` — routing is in `## Pipeline` above.
+
+"""
+    return ""
 
 
 def render_completion(cmd: dict) -> str:
@@ -463,13 +596,23 @@ def render_frontmatter(cmd: dict) -> str:
     return "\n".join(lines)
 
 
-def render_skill(cmd: dict) -> str:
+def render_skill(cmd: dict, registry_entry: dict, mode: str) -> str:
     name = cmd["name"]
-    conventions = "- Output the Completion Response when done."
-    if not cmd.get("utility"):
+    if cmd.get("utility"):
+        conventions = "- Reactive utility — respond with a clear summary of diagnosis and fixes."
+    elif mode == "plain":
         conventions = (
             "- Work in `specs/{NNN}-{feature}/` for all artifacts.\n"
             "- Follow Nubo naming conventions for generated files.\n"
+            "- Pipeline routing belongs only in each command's `## Pipeline` section — "
+            "never write `Next command` or `proceed to` in feature artifacts."
+        )
+    else:
+        conventions = (
+            "- Work in `specs/{NNN}-{feature}/` for all artifacts.\n"
+            "- Follow Nubo naming conventions for generated files.\n"
+            "- Pipeline routing belongs only in each command's `## Pipeline` section — "
+            "never write `Next command` or `proceed to` in feature artifacts.\n"
             "- Output the Completion Response when done."
         )
     parts = [
@@ -486,32 +629,27 @@ def render_skill(cmd: dict) -> str:
         conventions,
         "",
         render_user_prompts(name),
-        render_prerequisites(name, cmd["strategy"]),
+        render_prerequisites(name, cmd["strategy"], mode),
         render_context(cmd),
-        render_procedure(cmd),
+        render_procedure(cmd, registry_entry, mode),
         render_execution_model(name),
         render_artifacts(cmd),
-        render_completion(cmd),
+        render_pipeline(cmd),
+        render_nubo_appendix(cmd),
     ]
+    if mode == "governed":
+        parts.append(render_completion(cmd))
     return "\n".join(p for p in parts if p is not None)
 
 
 def write_references(cmd: dict) -> None:
     name = cmd["name"]
     base = ROOT / "commands" / cmd["layer"] / name / "references"
-    if name == "nb-review-code":
-        base.mkdir(parents=True, exist_ok=True)
-        (base / "review-perf.md").write_text("# Performance Review\n\nDetailed performance review procedure from performance-optimization upstream skill.\n")
-        (base / "review-simplification.md").write_text("# Simplification Review\n\nDetailed simplification procedure from code-simplification upstream skill.\n")
-    elif name == "nb-review-arch":
+    if name == "nb-review-arch":
         base.mkdir(parents=True, exist_ok=True)
         (base / "arch-guard-steps.md").write_text("# Architecture Guard Steps\n\nDetailed steps for architecture-guard extension.\n")
         (base / "arch-preview-steps.md").write_text("# Architect Preview Steps\n\nDetailed steps for architect-preview extension.\n")
         (base / "arch-contract-steps.md").write_text("# Architecture Contract Steps\n\nDetailed steps for spec-kit-arch extension.\n")
-    elif name == "nb-deploy":
-        base.mkdir(parents=True, exist_ok=True)
-        for f in ["deploy-shipping", "deploy-cicd", "deploy-git", "deploy-observability", "deploy-deprecation"]:
-            (base / f"{f}.md").write_text(f"# {f.replace('-', ' ').title()}\n\nDetailed sub-procedure.\n")
 
 
 def parse_skill_description(skill_path: Path) -> str:
@@ -572,10 +710,14 @@ def generate_extension() -> None:
 
 
 def main() -> None:
+    registry = load_registry()
+    mode = output_mode(registry)
+    print(f"generation.output_mode={mode}")
     for cmd in CATALOG:
+        registry_entry = registry.get("commands", {}).get(cmd["name"], {})
         path = ROOT / "commands" / cmd["layer"] / cmd["name"] / "SKILL.md"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(render_skill(cmd))
+        path.write_text(render_skill(cmd, registry_entry, mode))
         write_references(cmd)
         print(f"generated {path.relative_to(ROOT)}")
     generate_extension()

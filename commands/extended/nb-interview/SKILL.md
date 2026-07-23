@@ -21,7 +21,7 @@ Conduct multi-round stakeholder interviews and refine the idea before formal spe
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 ## User Prompts
 
@@ -47,7 +47,10 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Follow each sub-procedure below and combine outputs into the command artifacts.
+
+1. [Interview Me](references/interview-me.md)
+2. [Idea Refine](references/idea-refine.md)
 
 
 ## Artifacts
@@ -57,36 +60,9 @@ Before starting, gather:
 | Interview notes | `specs/{NNN}-{feature}/interview.md` | Stakeholder input and refined scope |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-interview",
-  "status": "success",
-  "phase": "specify",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/interview.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Next command:** `/nb-specify`
 
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": "nb-specify",
-  "message": "<human-readable summary>"
-}
-```
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-interview  |  SUCCESS
-**Phase:** specify  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `nb-specify`
----

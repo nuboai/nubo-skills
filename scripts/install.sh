@@ -15,8 +15,9 @@ usage() {
 Usage: $0 [--agent cursor-agent,claude,...] [--phases specify,plan,...] [--auto] [--target DIR] [--speckit]
 
 Copies nb-{command}/SKILL.md directories to agent discovery paths.
-With --speckit (or when .specify/ exists in target), also bootstraps SpecKit
-extensions, workflows, and presets via the specify CLI.
+By default this is a skills-only install (.cursor/skills/ + governance rule).
+Pass --speckit to also bootstrap SpecKit extensions, workflows, and presets
+into .specify/ (only needed for speckit slash commands and nb-review-arch).
 EOF
   exit 1
 }
@@ -57,7 +58,7 @@ else:
     selected = ["cursor-agent"]
 
 phase_filter = None if phases == "all" else set(p.strip() for p in phases.split(","))
-speckit_enabled = str(speckit_flag).strip().lower() in ("true", "1", "yes") or (target / ".specify").is_dir()
+speckit_enabled = str(speckit_flag).strip().lower() in ("true", "1", "yes")
 
 CONTEXT_MARKERS = {
     "claude": "nubo-skills governance",

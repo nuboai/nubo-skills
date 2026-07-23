@@ -2,7 +2,7 @@ schema_version: "1.0"
 id: nb-conventions
 name: "Nubo Conventions"
 version: "1.0.0"
-description: "Inject Nubo governance, naming, completion response, and context-engineering practices"
+description: "Inject Nubo governance, naming, and context-engineering practices"
 strategy: wrap
 priority: 50
 target: all
@@ -12,11 +12,7 @@ wrap:
     ## Nubo Governance Conventions
     - All commands use `nb-{command}` naming.
     - Work in `specs/{NNN}-{feature}/` for pipeline artifacts.
-    - Emit v2 Completion Response JSON + visual summary when done.
     - Apply context-engineering: gather only relevant context, avoid token waste.
-  append: |
-    ## Completion Contract Reminder
-    Always output the standardized v2 JSON completion response defined in this command.
 
 inject:
   - skill: context-engineering

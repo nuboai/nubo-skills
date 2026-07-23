@@ -31,7 +31,7 @@ Run a three-part architecture review: detect drift, preview impact, and validate
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 ## User Prompts
 
@@ -48,16 +48,16 @@ Run a three-part architecture review: detect drift, preview impact, and validate
 
 ## Prerequisites
 
-Verify the following SpecKit extensions are installed (auto-installed by `scripts/install.sh` when `.specify/` exists):
+Verify the following SpecKit extensions are installed (install with `scripts/install.sh --speckit` when needed):
 
 1. Check `.specify/extensions/architecture-guard/` exists.
    If missing: `specify extension add architecture-guard --from https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip`
 2. Check `.specify/presets/architect-preview/preset.yml` exists.
-   If missing: re-run `scripts/install.sh` (vendored preset with schema_version fix).
+   If missing: re-run `scripts/install.sh --speckit`.
 3. Check `.specify/extensions/arch/` exists.
    If missing: `specify extension add arch --from https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip`
 
-If any extension cannot be installed, report status "error" with details.
+If any extension cannot be installed, report the failure clearly before continuing.
 
 
 ## Context
@@ -106,44 +106,9 @@ Deduplicate by `location`. Highest severity wins on conflicts.
 | Architecture contract | `.specify/memory/architecture.md` | Updated planning contract |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-review-arch",
-  "status": "success",
-  "phase": "review",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/arch-review.md",
-          "action": "created",
-          "lines": 0
-      },
-      {
-          "path": ".specify/memory/architecture.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Next command:** `/nb-implement`
 
-  "findings": [
-    { "severity": "P1", "category": "quality", "message": "...", "location": "file:line" }
-  ],
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": "nb-implement",
-  "message": "<human-readable summary>"
-}
-```
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-review-arch  |  SUCCESS
-**Phase:** review  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `nb-implement`
----

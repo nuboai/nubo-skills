@@ -5,55 +5,55 @@ commands:
     - upstream_name: speckit-constitution
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-58d35eb026f56bb7364d91b8b0382d5dd1249ded6c1449a2b69546693afb85f7
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-specify:
     composes:
     - upstream_name: speckit-specify
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-e93c20874340f8e53fd1016513835ab8deb9f9828475d65b9459010079038d71
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-clarify:
     composes:
     - upstream_name: speckit-clarify
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-4409c32ef3d1d6875b313d9ed6926054be619c70d18dfd88df8602f74f645a20
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-plan:
     composes:
     - upstream_name: speckit-plan
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-b960e229507cec3949f559bfcd22863b93b26c008b14b5db9279bceca178084b
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-tasks:
     composes:
     - upstream_name: speckit-tasks
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-3fe0b9903a66ee18cfe6ff96cf7ee74a46ea0d2dabc3b37523f97336900ff5cf
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-implement:
     composes:
     - upstream_name: speckit-implement
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-a68c4c6411a9a0baeeb0074ff0bfaf35819f01e6a0e04b0caef41453b4c0042c
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-analyze:
     composes:
     - upstream_name: speckit-analyze
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-33641d1bdf7e8d1534a4e2a1a83458d580a43d6975f72cc7455b4c71b6fb1c5e
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-converge:
     composes:
     - upstream_name: speckit-converge
-      resolved_ref: 100040afb86aaa6bc2c59c2d23cfb21d2a82ca8c
-      integrity: sha256-a316b536e58c07455875d022432fb6849ff7b0185cfb678975a5460ee179bb79
-    synced_at: '2026-07-23T01:42:55Z'
+      resolved_ref: 9386ca0c659b38c619f21470090eb8b9d109cdf8
+      integrity: sha256-34d32fb251b99ef09f7e3c780132f9bcc404c8135c51b9e0d850e2b3548af32a
+    synced_at: '2026-07-23T02:47:37Z'
   nb-checklist:
     composes:
     - upstream_name: speckit-checklist
       resolved_ref: 2262359d967601f864749e359d3e0129e45e94f4
       integrity: sha256-9da1606dafc49fa240dab35324fbe09af8f41303424ba948fa5f32c891788282
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-interview:
     composes:
     - upstream_name: interview-me
@@ -62,7 +62,7 @@ commands:
     - upstream_name: idea-refine
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-79e773058963adc7646b0115b4f8a4afc974c5ff95843e4ef1cafff3cb51899e
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-review-code:
     composes:
     - upstream_name: code-review-and-quality
@@ -74,7 +74,7 @@ commands:
     - upstream_name: performance-optimization
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-c56f6059fed0b77c50c946e38275f04c8b297657f3742d5782ee564514ecc4dc
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:37Z'
   nb-review-security:
     composes:
     - upstream_name: security-and-hardening
@@ -83,7 +83,7 @@ commands:
     - upstream_name: static-analysis
       resolved_ref: cfe5d7b1619e47fb5b38b7e2561dad7e5f1e89af
       integrity: sha256-092472caba4d39701c3871418871b462098aa7d49c9c92ebdc8006b0d40fe548
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-review-arch:
     composes:
     - upstream_name: architecture-guard
@@ -98,7 +98,7 @@ commands:
       extension_id: arch
       resolved_ref: v1.2.2
       integrity: sha256-unverifiable
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-test:
     composes:
     - upstream_name: browser-testing-with-devtools
@@ -107,7 +107,7 @@ commands:
     - upstream_name: webapp-testing
       resolved_ref: 1f630fdf9259cec4a14913127dfd7c3b69ef72eb
       integrity: sha256-51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-deploy:
     composes:
     - upstream_name: shipping-and-launch
@@ -125,38 +125,38 @@ commands:
     - upstream_name: deprecation-and-migration
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-92d9846321fab624eded7ac55d19a7738cfd2321c2be2e35eb153dcacf7359de
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-mcp:
     composes:
     - upstream_name: mcp-builder
       resolved_ref: 1f630fdf9259cec4a14913127dfd7c3b69ef72eb
       integrity: sha256-0f4592dcb53cf2b5d6b7febee6b4152018b565551a1c29e3c612f57b218ab295
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-docs:
     composes:
     - upstream_name: documentation-and-adrs
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-b867bb80fb681257c7625ae59a0dfd849b1fc0f0a2f0338e7923f38030df9793
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-review-skill:
     composes:
     - upstream_name: nubo-review-skill
-      resolved_ref: 100040afb86aaa6bc2c59c2d23cfb21d2a82ca8c
-      integrity: sha256-c2db597ae5c309e33bfff411dd186f42df7fec025b5aa91b96357248f5f176bf
-    synced_at: '2026-07-23T01:42:55Z'
+      resolved_ref: 9386ca0c659b38c619f21470090eb8b9d109cdf8
+      integrity: sha256-7f651f5e138475faf6eafc43d5331c573fdd28d1d78e46c7be205d94e2727806
+    synced_at: '2026-07-23T02:47:38Z'
   nb-debug:
     composes:
     - upstream_name: debugging-and-error-recovery
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-927ad6917fa2891827351cfa3470cd715423faaa5c5f27fe74534d9324c35eea
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
 presets:
   nb-conventions:
     composes:
     - upstream_name: context-engineering
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-ff9d4e5706bdd2eb7de1bfed569f1f42d28e478979ce6fcc32e617e7861b491d
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-tdd:
     composes:
     - upstream_name: test-driven-development
@@ -165,13 +165,13 @@ presets:
     - upstream_name: doubt-driven-development
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-59aef769adeae40aad67a1d54474aaf914ea7ecdfc2a4752a54840a8d29f80de
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'
   nb-frontend:
     composes:
     - upstream_name: frontend-ui-engineering
       resolved_ref: fefc4075ddfd8363d3b2aa8b26e6440f1ce204c0
       integrity: sha256-9c284b1f06d617b289c0d250004af5cbaedd5135071e1b17c0211a0aa03a73a4
     - upstream_name: frontend-design
-      resolved_ref: 100040afb86aaa6bc2c59c2d23cfb21d2a82ca8c
+      resolved_ref: 9386ca0c659b38c619f21470090eb8b9d109cdf8
       integrity: sha256-e6e562cc6a824dc8ce80c704d66ec7110a192667ba5b728912c02c31b2764e5a
-    synced_at: '2026-07-23T01:42:55Z'
+    synced_at: '2026-07-23T02:47:38Z'

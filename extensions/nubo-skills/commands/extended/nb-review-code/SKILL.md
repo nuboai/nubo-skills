@@ -29,7 +29,7 @@ Run a comprehensive code review covering quality issues, simplification opportun
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 ## User Prompts
 
@@ -55,9 +55,11 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Follow each sub-procedure below and combine outputs into the command artifacts.
 
-See [performance review](references/review-perf.md) and [simplification review](references/review-simplification.md) for detailed sub-procedures.
+1. [Code Review And Quality](references/code-review-and-quality.md)
+2. [Code Simplification](references/code-simplification.md)
+3. [Performance Optimization](references/performance-optimization.md)
 
 ## Execution Model
 
@@ -83,39 +85,9 @@ Deduplicate by `location`. Highest severity wins on conflicts.
 | Review report | `specs/{NNN}-{feature}/review.md` | Findings by quality, simplification, performance |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-review-code",
-  "status": "success",
-  "phase": "review",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/review.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Next command:** `/nb-implement`
 
-  "findings": [
-    { "severity": "P1", "category": "quality", "message": "...", "location": "file:line" }
-  ],
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": "nb-implement",
-  "message": "<human-readable summary>"
-}
-```
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-review-code  |  SUCCESS
-**Phase:** review  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `nb-implement`
----

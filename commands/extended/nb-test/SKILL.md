@@ -21,7 +21,7 @@ Execute browser and webapp tests to verify the implementation works correctly.
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 
 
@@ -35,7 +35,10 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Follow each sub-procedure below and combine outputs into the command artifacts.
+
+1. [Browser Testing With Devtools](references/browser-testing-with-devtools.md)
+2. [Webapp Testing](references/webapp-testing.md)
 
 
 ## Artifacts
@@ -45,36 +48,9 @@ Before starting, gather:
 | Test results | `specs/{NNN}-{feature}/test-results.md` | Browser and webapp test outcomes |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-test",
-  "status": "success",
-  "phase": "test",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/test-results.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Next command:** `/nb-analyze`
 
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": "nb-analyze",
-  "message": "<human-readable summary>"
-}
-```
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-test  |  SUCCESS
-**Phase:** test  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `nb-analyze`
----

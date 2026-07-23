@@ -20,7 +20,7 @@ Review skill/command definitions in nubo-skills for governance, naming, and comp
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 
 
@@ -34,7 +34,13 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Review nubo-skills command definitions for structural and governance compliance.
+
+1. Load `registry.yml` and compare each registered command to its on-disk `SKILL.md`.
+2. Verify naming (`nb-{command}`), layer path, strategy, and `composes` alignment.
+3. Check required sections for the command's strategy and output mode.
+4. Confirm artifact paths follow `specs/{NNN}-{feature}/` conventions.
+5. Record findings by severity in `specs/{NNN}-{feature}/skill-review.md`.
 
 
 ## Artifacts
@@ -44,36 +50,8 @@ Before starting, gather:
 | Skill review | `specs/{NNN}-{feature}/skill-review.md` | Governance review findings |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-review-skill",
-  "status": "success",
-  "phase": "review",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/skill-review.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Terminal command** — no pipeline successor.
 
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": null,
-  "message": "<human-readable summary>"
-}
-```
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-review-skill  |  SUCCESS
-**Phase:** review  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `null`
----

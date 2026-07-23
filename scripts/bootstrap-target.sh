@@ -15,6 +15,7 @@ CHECK_ONLY=false
 UNINSTALL=false
 TRY_BUNDLE=false
 AUTO=false
+SPECKIT=false
 
 usage() {
   cat <<EOF
@@ -32,6 +33,7 @@ Options:
   --ref REF          Git ref to clone when no --source (default: master or \$NUBO_SKILLS_REF)
   --source DIR       Use an existing nubo-skills checkout instead of cloning
   --try-bundle       Run "specify bundle install" first; fall back to install.sh on failure
+  --speckit          Also bootstrap SpecKit extensions/presets into .specify/
   --check            Validate prerequisites and access; make no changes
   --uninstall        Remove artifacts installed by a previous bootstrap/install
   --verbose, -v      Verbose output
@@ -62,6 +64,7 @@ while [[ $# -gt 0 ]]; do
     --source) SOURCE_ROOT="$2"; shift 2 ;;
     --auto) AUTO=true; shift ;;
     --try-bundle) TRY_BUNDLE=true; shift ;;
+    --speckit) SPECKIT=true; shift ;;
     --check) CHECK_ONLY=true; shift ;;
     --uninstall) UNINSTALL=true; shift ;;
     --verbose|-v) export NUBO_SKILLS_VERBOSE=true; shift ;;
@@ -109,9 +112,9 @@ check_mode() {
   [[ -f "$source_root/registry.yml" ]] || fail "registry.yml missing in $source_root"
 
   if [[ -d "$TARGET_DIR/.specify" ]]; then
-    verbose "Target has .specify/ — SpecKit bootstrap will run"
+    verbose "Target has .specify/ — pass --speckit to refresh SpecKit extensions"
   else
-    verbose "Target has no .specify/ — skills-only install"
+    verbose "Default install is skills-only (.cursor/skills/)"
   fi
 
   if command -v specify &>/dev/null; then
@@ -177,7 +180,7 @@ main() {
   else
     install_args+=(--agent "$AGENTS")
   fi
-  if [[ ! -d "$TARGET_DIR/.specify" ]] && command -v specify &>/dev/null; then
+  if [[ "$SPECKIT" == true ]]; then
     install_args+=(--speckit)
   fi
 

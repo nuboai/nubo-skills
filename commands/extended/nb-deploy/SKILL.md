@@ -24,7 +24,7 @@ Execute the full deployment lifecycle: shipping, CI/CD, versioning, observabilit
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 ## User Prompts
 
@@ -50,9 +50,13 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Follow each sub-procedure below and combine outputs into the command artifacts.
 
-See [shipping](references/deploy-shipping.md), [CI/CD](references/deploy-cicd.md), [git workflow](references/deploy-git.md), [observability](references/deploy-observability.md), and [deprecation](references/deploy-deprecation.md) for detailed sub-procedures.
+1. [Shipping And Launch](references/shipping-and-launch.md)
+2. [Ci Cd And Automation](references/ci-cd-and-automation.md)
+3. [Git Workflow And Versioning](references/git-workflow-and-versioning.md)
+4. [Observability And Instrumentation](references/observability-and-instrumentation.md)
+5. [Deprecation And Migration](references/deprecation-and-migration.md)
 
 ## Execution Model
 
@@ -78,36 +82,8 @@ Deduplicate by `location`. Highest severity wins on conflicts.
 | Deploy log | `specs/{NNN}-{feature}/deploy.md` | Deployment execution log |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-deploy",
-  "status": "success",
-  "phase": "deploy",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/deploy.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Terminal command** — no pipeline successor.
 
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": null,
-  "message": "<human-readable summary>"
-}
-```
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-deploy  |  SUCCESS
-**Phase:** deploy  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `null`
----

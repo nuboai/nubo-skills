@@ -20,7 +20,7 @@ Drive iteration cycles until the implementation converges with the specification
 
 - Work in `specs/{NNN}-{feature}/` for all artifacts.
 - Follow Nubo naming conventions for generated files.
-- Output the Completion Response when done.
+- Pipeline routing belongs only in each command's `## Pipeline` section — never write `Next command` or `proceed to` in feature artifacts.
 
 
 
@@ -34,7 +34,19 @@ Before starting, gather:
 
 ## Procedure
 
-{CORE_TEMPLATE}
+Iterate between implementation and analysis until spec and code converge.
+
+1. Run gap analysis against the feature spec.
+2. Identify unresolved gaps and classify by severity.
+3. Generate fix tasks for P0-P1 gaps.
+4. Re-implement and re-analyze until no P0-P1 gaps remain.
+5. Document convergence history in `specs/{NNN}-{feature}/convergence.md`.
+
+## Artifact rules
+
+- `convergence.md` records **status only** (`CONVERGED` / `NOT CONVERGED`), iteration history, gates, and accepted deviations.
+- Do **not** write `Next command`, `proceed to`, or pipeline routing in `convergence.md` or other feature artifacts — routing lives in each command's `## Pipeline` section.
+- If a later pipeline artifact already exists (e.g. `checklist.md` is SHIP), note that status in the iteration log; do not skip ahead to a later command in summaries.
 
 
 ## Artifacts
@@ -44,36 +56,9 @@ Before starting, gather:
 | Convergence log | `specs/{NNN}-{feature}/convergence.md` | Iteration history and resolution |
 
 
-## Completion Response
+## Pipeline
 
-```json
-{
-  "command": "nb-converge",
-  "status": "success",
-  "phase": "converge",
-  "artifacts": [
-      {
-          "path": "specs/{NNN}-{feature}/convergence.md",
-          "action": "created",
-          "lines": 0
-      }
-  ],
+**Next command:** `/nb-checklist`
 
-  "metrics": {
-    "duration_s": 0,
-    "files_read": 0,
-    "files_written": 0
-  },
-  "next_command": "nb-checklist",
-  "message": "<human-readable summary>"
-}
-```
+- Use only this successor — do not invent, skip, or substitute pipeline steps in summaries or feature artifacts.
 
-After emitting the JSON, render the visual summary block:
-
----
-### nb-converge  |  SUCCESS
-**Phase:** converge  |  **Duration:** 0s  |  **Files:** 0 read, 0 written
-
-**Next:** `nb-checklist`
----

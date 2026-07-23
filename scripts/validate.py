@@ -20,18 +20,25 @@ ROOT = Path(__file__).resolve().parent.parent
 ERRORS: list[str] = []
 WARNINGS: list[str] = []
 
-REQUIRED_SECTIONS_PIPELINE = [
+REQUIRED_SECTIONS_PIPELINE_PLAIN = [
     "## Purpose",
     "## Conventions",
     "## Context",
     "## Procedure",
     "## Artifacts",
-    "## Completion Response",
+    "## Pipeline",
 ]
-REQUIRED_SECTIONS_UTILITY = [
+REQUIRED_SECTIONS_UTILITY_PLAIN = [
     "## Purpose",
     "## Conventions",
     "## Procedure",
+]
+REQUIRED_SECTIONS_PIPELINE_GOVERNED = [
+    *REQUIRED_SECTIONS_PIPELINE_PLAIN,
+    "## Completion Response",
+]
+REQUIRED_SECTIONS_UTILITY_GOVERNED = [
+    *REQUIRED_SECTIONS_UTILITY_PLAIN,
     "## Completion Response",
 ]
 FINDINGS_COMMANDS = {
@@ -119,7 +126,12 @@ def check_naming(registry: dict, on_disk: dict[str, Path]) -> None:
             err(f"on-disk command {name} not in registry.yml")
 
 
-def check_skill(name: str, path: Path, entry: dict) -> None:
+def output_mode(registry: dict) -> str:
+    mode = (registry.get("generation") or {}).get("output_mode", "plain")
+    return mode if mode in ("plain", "governed") else "plain"
+
+
+def check_skill(name: str, path: Path, entry: dict, mode: str) -> None:
     content = path.read_text()
     fm, body = parse_frontmatter(content)
     if fm is None:
@@ -148,7 +160,10 @@ def check_skill(name: str, path: Path, entry: dict) -> None:
         err(f"{name}: metadata.composes {skill_composes} != registry {reg_composes}")
 
     is_utility = strategy == "utility"
-    sections = REQUIRED_SECTIONS_UTILITY if is_utility else REQUIRED_SECTIONS_PIPELINE
+    if mode == "plain":
+        sections = REQUIRED_SECTIONS_UTILITY_PLAIN if is_utility else REQUIRED_SECTIONS_PIPELINE_PLAIN
+    else:
+        sections = REQUIRED_SECTIONS_UTILITY_GOVERNED if is_utility else REQUIRED_SECTIONS_PIPELINE_GOVERNED
     for sec in sections:
         if sec not in content:
             err(f"{name}: missing section {sec}")
@@ -166,22 +181,32 @@ def check_skill(name: str, path: Path, entry: dict) -> None:
         if "## Execution Model" not in content:
             err(f"{name}: missing ## Execution Model")
 
-    if strategy in ("merge", "wrap", "standalone") and "{CORE_TEMPLATE}" not in content:
-        if strategy != "sequence":
-            err(f"{name}: {strategy} strategy requires {{CORE_TEMPLATE}} in Procedure")
-    if strategy == "sequence" and "{CORE_TEMPLATE}" in content:
-        err(f"{name}: sequence strategy must not use {{CORE_TEMPLATE}}")
+    if mode == "plain":
+        if "{CORE_TEMPLATE}" in content:
+            err(f"{name}: plain output mode must inline upstream content (found {{CORE_TEMPLATE}})")
+        if "## Completion Response" in content:
+            err(f"{name}: plain output mode must not include ## Completion Response")
+    else:
+        if strategy in ("merge", "wrap", "standalone") and "{CORE_TEMPLATE}" not in content:
+            if strategy != "sequence":
+                err(f"{name}: {strategy} strategy requires {{CORE_TEMPLATE}} in Procedure")
+        if strategy == "sequence" and "{CORE_TEMPLATE}" in content:
+            err(f"{name}: sequence strategy must not use {{CORE_TEMPLATE}}")
+
+        if "## Completion Response" in content:
+            if '"command"' not in content or '"metrics"' not in content or '"next_command"' not in content:
+                err(f"{name}: completion response missing v2 fields")
+            if name in FINDINGS_COMMANDS and '"findings"' not in content:
+                err(f"{name}: missing findings in completion response")
+            if "### " not in content.split("## Completion Response")[-1]:
+                warn(f"{name}: missing visual summary block after completion JSON")
 
     if not is_utility and "| Path |" not in content:
         err(f"{name}: missing Artifacts table with Path column")
 
-    if "## Completion Response" in content:
-        if '"command"' not in content or '"metrics"' not in content or '"next_command"' not in content:
-            err(f"{name}: completion response missing v2 fields")
-        if name in FINDINGS_COMMANDS and '"findings"' not in content:
-            err(f"{name}: missing findings in completion response")
-        if "### " not in content.split("## Completion Response")[-1]:
-            warn(f"{name}: missing visual summary block after completion JSON")
+    if not is_utility and mode == "plain":
+        if "**Next command:**" not in content and "**Terminal command**" not in content:
+            err(f"{name}: ## Pipeline must declare **Next command:** or **Terminal command**")
 
     body_lines = [l for l in body.splitlines() if l.strip()]
     if len(body_lines) > 500:
@@ -454,11 +479,12 @@ def _verify_lock_compose(owner: str, composes: list, locked: list) -> None:
 
 def main() -> int:
     registry = load_registry()
+    mode = output_mode(registry)
     on_disk = find_commands()
     check_naming(registry, on_disk)
     for name, path in on_disk.items():
         entry = registry.get("commands", {}).get(name, {})
-        check_skill(name, path, entry)
+        check_skill(name, path, entry, mode)
     check_governance(registry)
     check_speckit_extensions(registry)
     check_upstream_paths(registry)
