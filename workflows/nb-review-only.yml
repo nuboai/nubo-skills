@@ -1,0 +1,21 @@
+id: nb-review-only
+name: "Nubo Review Pipeline"
+description: "Review + test pipeline for existing code"
+hooks_profile: none
+
+steps:
+  - id: review-code
+    command: nb.nb-review-code
+  - id: review-security
+    command: nb.nb-review-security
+  - id: arch-review
+    command: nb.nb-review-arch
+    optional: true
+  - id: test
+    command: nb.nb-test
+    optional: true
+  - id: analyze
+    command: nb.nb-analyze
+  - id: review-final
+    type: gate
+    approvers: ["@nubo/sdlc-team"]

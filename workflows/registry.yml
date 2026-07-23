@@ -1,0 +1,66 @@
+schema_version: 1
+
+workflows:
+  nb-greenfield:
+    scenario: greenfield
+    when: "New repo or product — no constitution, no specs/, no architectural decisions"
+    use_instead_of: "Running nb-constitution → nb-specify → ... manually"
+    direct_command_when: "Never for first bootstrap — always use this workflow"
+    entry: "specify workflow run nb-greenfield"
+    gates: 2
+
+  nb-feature-pipeline:
+    scenario: new-feature
+    when: "SDD-ready project — constitution and specs/ exist; building the next feature"
+    use_instead_of: "Chaining specify → plan → tasks → implement without gates"
+    direct_command_when: "Resuming after a gate (e.g. plan approved → /nb.nb-tasks directly)"
+    entry: "specify workflow run nb-feature-pipeline"
+    gates: 3
+
+  nb-brownfield-onboard:
+    scenario: brownfield
+    when: "Existing codebase with code but no SDD artifacts — adopt governance retroactively"
+    use_instead_of: "Writing constitution by hand without codebase discovery"
+    direct_command_when: "Never for initial onboarding — use workflow once, then switch to nb-feature-pipeline"
+    entry: "specify workflow run nb-brownfield-onboard"
+    gates: 2
+
+  nb-hotfix:
+    scenario: hotfix
+    when: "Small scoped fix — skip full specify/plan; minimal review"
+    use_instead_of: "nb-feature-pipeline (too heavy for a one-line fix)"
+    direct_command_when: "Patch already specced → /nb.nb-implement + /nb.nb-review-code directly"
+    entry: "specify workflow run nb-hotfix"
+    gates: 1
+
+  nb-review-only:
+    scenario: review
+    when: "Code exists; need quality/security/test pass without new implementation"
+    use_instead_of: "Running review commands ad-hoc without a final gate"
+    direct_command_when: "Single lens needed (e.g. security only → /nb.nb-review-security)"
+    entry: "specify workflow run nb-review-only"
+    gates: 1
+
+  nb-security-audit:
+    scenario: security
+    when: "Security audit, compliance check, or pre-release hardening"
+    use_instead_of: "/nb.nb-review-security alone when audit sign-off is required"
+    direct_command_when: "Quick pre-merge scan → /nb.nb-review-security directly"
+    entry: "specify workflow run nb-security-audit"
+    gates: 1
+
+  nb-docs-catchup:
+    scenario: documentation
+    when: "Codebase lacks ADRs, README depth, or API docs — document what exists"
+    use_instead_of: "/nb.nb-docs without codebase discovery context"
+    direct_command_when: "Updating one doc file → /nb.nb-docs directly"
+    entry: "specify workflow run nb-docs-catchup"
+    gates: 1
+
+  nb-arch-alignment:
+    scenario: architecture
+    when: "Architecture drift detected — align code to constitution without new features"
+    use_instead_of: "/nb.nb-review-arch alone when remediation is needed"
+    direct_command_when: "Drift check only (no fix yet) → /nb.nb-review-arch directly"
+    entry: "specify workflow run nb-arch-alignment"
+    gates: 2

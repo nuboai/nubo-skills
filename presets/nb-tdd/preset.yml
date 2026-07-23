@@ -1,0 +1,9 @@
+id: nb-tdd
+name: "Nubo TDD Methodology"
+version: "1.0.0"
+description: "Augment nb-implement with TDD and doubt-driven development"
+target: nb-implement
+
+inject:
+  - skill: test-driven-development
+  - skill: doubt-driven-development

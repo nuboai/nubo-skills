@@ -1,0 +1,51 @@
+id: nb-greenfield
+name: "Nubo Greenfield Bootstrap"
+description: "Bootstrap a governed project from an idea with no existing artifacts"
+hooks_profile: full
+
+steps:
+  - id: interview
+    command: nb.nb-interview
+
+  - id: constitution
+    command: nb.nb-constitution
+
+  - id: specify
+    command: nb.nb-specify
+
+  - id: clarify
+    command: nb.nb-clarify
+
+  - id: review-spec
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: plan
+    command: nb.nb-plan
+
+  - id: tasks
+    command: nb.nb-tasks
+
+  - id: review-plan
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: implement
+    command: nb.nb-implement
+
+  - id: analyze
+    command: nb.nb-analyze
+
+  - id: converge
+    command: nb.nb-converge
+
+  - id: checklist
+    command: nb.nb-checklist
+
+  - id: review-final
+    type: gate
+    approvers: ["@nubo/sdlc-team"]
+
+  - id: deploy
+    command: nb.nb-deploy
+    optional: true

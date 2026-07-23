@@ -1,0 +1,16 @@
+id: nb-hotfix
+name: "Nubo Hotfix"
+description: "Fast path for small scoped fixes"
+hooks_profile: review-only
+
+steps:
+  - id: patch-spec
+    command: nb.nb-specify
+    mode: patch
+
+  - id: implement
+    command: nb.nb-implement
+
+  - id: review-final
+    type: gate
+    approvers: ["@nubo/sdlc-team"]

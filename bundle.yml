@@ -1,0 +1,41 @@
+id: nb-sdlc-full
+name: "Nubo Full SDLC"
+version: "1.0.0"
+description: "19 commands + 8 scenario workflows covering the full SDD pipeline"
+
+components:
+  presets:
+    - id: nb-conventions
+      version: "1.0.0"
+      strategy: wrap
+      priority: 50
+    - id: nb-tdd
+      version: "1.0.0"
+    - id: nb-frontend
+      version: "1.0.0"
+  extensions:
+    - id: nubo-skills
+      version: "1.0.0"
+    - id: architecture-guard
+      version: "1.0.0"
+    - id: architect-preview
+      version: "1.0.0"
+    - id: spec-kit-arch
+      version: "1.0.0"
+  workflows:
+    - id: nb-greenfield
+      version: "1.0.0"
+    - id: nb-feature-pipeline
+      version: "1.0.0"
+    - id: nb-brownfield-onboard
+      version: "1.0.0"
+    - id: nb-hotfix
+      version: "1.0.0"
+    - id: nb-review-only
+      version: "1.0.0"
+    - id: nb-security-audit
+      version: "1.0.0"
+    - id: nb-docs-catchup
+      version: "1.0.0"
+    - id: nb-arch-alignment
+      version: "1.0.0"

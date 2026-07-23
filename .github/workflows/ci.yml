@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - run: chmod +x scripts/*.sh
+      - run: ./scripts/validate.sh
+
+  skillspector:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SkillSpector
+        run: pip install skillspector || echo "SkillSpector install skipped"
+      - name: Scan commands
+        run: |
+          if command -v skillspector >/dev/null 2>&1; then
+            skillspector scan commands/ --format sarif --output skillspector-report.sarif || true
+          else
+            echo "SkillSpector not available — skipping security scan"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skillspector-report
+          path: skillspector-report.sarif
+          if-no-files-found: ignore
