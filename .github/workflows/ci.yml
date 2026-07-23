@@ -30,7 +30,11 @@ jobs:
       - name: Scan commands
         run: |
           if command -v skillspector >/dev/null 2>&1; then
-            skillspector scan commands/ --format sarif --output skillspector-report.sarif || true
+            if [ -f .skillspector-baseline.yml ]; then
+              skillspector scan commands/ --format sarif --baseline .skillspector-baseline.yml --output skillspector-report.sarif || true
+            else
+              skillspector scan commands/ --format sarif --output skillspector-report.sarif || true
+            fi
           else
             echo "SkillSpector not available — skipping security scan"
           fi

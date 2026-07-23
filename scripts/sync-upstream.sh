@@ -22,7 +22,6 @@ SUBMODULE_MAP = {
     "addyosmani/agent-skills": "upstream/addyosmani",
     "anthropics/skills": "upstream/anthropics",
     "trailofbits/skills": "upstream/trailofbits",
-    "anthropics/claude-code": "upstream/anthropics-claude-code",
 }
 
 

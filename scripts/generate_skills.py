@@ -339,7 +339,9 @@ Combine outputs into a single architecture review report.
         if cmd["name"] == "nb-review-code":
             extra = "\nSee [performance review](references/review-perf.md) and [simplification review](references/review-simplification.md) for detailed sub-procedures.\n"
         if cmd["name"] == "nb-deploy":
-            extra = "\nSee references/ for shipping, CI/CD, git workflow, observability, and deprecation sub-procedures.\n"
+            extra = """
+See [shipping](references/deploy-shipping.md), [CI/CD](references/deploy-cicd.md), [git workflow](references/deploy-git.md), [observability](references/deploy-observability.md), and [deprecation](references/deploy-deprecation.md) for detailed sub-procedures.
+"""
         return f"""## Procedure
 
 {{CORE_TEMPLATE}}

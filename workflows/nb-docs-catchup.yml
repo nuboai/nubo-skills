@@ -1,17 +1,27 @@
-id: nb-docs-catchup
-name: "Nubo Documentation Catch-up"
-description: "Document existing codebase decisions and APIs"
-hooks_profile: none
+schema_version: "1.0"
+workflow:
+  id: nb-docs-catchup
+  name: "Nubo Documentation Catch-up"
+  version: "1.0.0"
+  author: "Nubo"
+  description: "Document existing codebase decisions and APIs"
+  hooks_profile: none
 
 steps:
   - id: discover
     command: nb.nb-implement
-    mode: reverse-engineer
+    input:
+      args: "reverse-engineer"
+
   - id: docs
     command: nb.nb-docs
+
   - id: analyze
     command: nb.nb-analyze
-    optional: true
+    continue_on_error: true
+
   - id: docs-gate
     type: gate
-    approvers: ["@nubo/sdlc-team"]
+    message: "Approve documentation catch-up before closing."
+    options: [approve, reject]
+    on_reject: abort

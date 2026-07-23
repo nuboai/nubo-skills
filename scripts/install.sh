@@ -102,12 +102,13 @@ state = {
     "agents": selected,
     "phases": phases,
 }
-(target / ".nubo-skills.state.json").write_text(json.dumps(state, indent=2))
+(state_path := target / ".nubo-skills.state.json").write_text(json.dumps(state, indent=2))
+(target / ".nubo-skills.agents").write_text("\n".join(selected))
 print(f"Installed {len(installed)} skill(s) across {len(selected)} agent(s)")
 PY
 
 # Install governance context files
-for agent in $(echo "$AGENTS" | tr ',' ' '); do
+while IFS= read -r agent; do
   [[ -z "$agent" ]] && continue
   case "$agent" in
     cursor-agent)
@@ -126,5 +127,12 @@ for agent in $(echo "$AGENTS" | tr ',' ' '); do
         cat "$ROOT/integrations/context-files/codex.md" >> "$TARGET_DIR/AGENTS.md"
       fi
       ;;
+    gemini)
+      touch "$TARGET_DIR/GEMINI.md"
+      if ! grep -q "nubo-skills governance" "$TARGET_DIR/GEMINI.md" 2>/dev/null; then
+        cat "$ROOT/integrations/context-files/gemini.md" >> "$TARGET_DIR/GEMINI.md"
+      fi
+      ;;
   esac
-done
+done < "$TARGET_DIR/.nubo-skills.agents"
+rm -f "$TARGET_DIR/.nubo-skills.agents"

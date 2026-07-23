@@ -1,26 +1,41 @@
-id: nb-arch-alignment
-name: "Nubo Architecture Alignment"
-description: "Remediate architecture drift against constitution"
-hooks_profile: arch-only
+schema_version: "1.0"
+workflow:
+  id: nb-arch-alignment
+  name: "Nubo Architecture Alignment"
+  version: "1.0.0"
+  author: "Nubo"
+  description: "Remediate architecture drift against constitution"
+  hooks_profile: arch-only
 
 steps:
   - id: constitution-check
     command: nb.nb-constitution
-    type: check
+
   - id: arch-review
     command: nb.nb-review-arch
+
   - id: plan-refactor
     command: nb.nb-plan
-    mode: refactor
+    input:
+      args: "refactor"
+
   - id: tasks
     command: nb.nb-tasks
+
   - id: review-plan
     type: gate
-    approvers: ["@nubo/sdlc-team"]
+    message: "Review the refactor plan before implementation."
+    options: [approve, reject]
+    on_reject: abort
+
   - id: implement
     command: nb.nb-implement
+
   - id: arch-review-post
     command: nb.nb-review-arch
+
   - id: review-final
     type: gate
-    approvers: ["@nubo/sdlc-team"]
+    message: "Final review after architecture alignment."
+    options: [approve, reject]
+    on_reject: abort

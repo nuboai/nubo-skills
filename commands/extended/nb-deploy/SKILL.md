@@ -52,7 +52,7 @@ Before starting, gather:
 
 {CORE_TEMPLATE}
 
-See references/ for shipping, CI/CD, git workflow, observability, and deprecation sub-procedures.
+See [shipping](references/deploy-shipping.md), [CI/CD](references/deploy-cicd.md), [git workflow](references/deploy-git.md), [observability](references/deploy-observability.md), and [deprecation](references/deploy-deprecation.md) for detailed sub-procedures.
 
 ## Execution Model
 
