@@ -227,7 +227,7 @@ CATALOG: list[dict] = [
     {"name": "nb-review-arch", "layer": "extended", "phase": "review", "strategy": "sequence", "tier": "green",
      "description": "Architecture review: drift detection, impact preview, and contract validation.",
      "purpose": "Run a three-part architecture review: detect drift, preview impact, and validate the architecture contract.",
-     "composes": ["architecture-guard", "architect-preview", "spec-kit-arch"], "next": "nb-implement",
+     "composes": ["architecture-guard", "architect-preview", "arch"], "next": "nb-implement",
      "artifacts": [
          ("Architecture review", "specs/{NNN}-{feature}/arch-review.md", "Unified architecture review report"),
          ("Architecture contract", ".specify/memory/architecture.md", "Updated planning contract"),
@@ -294,14 +294,14 @@ def render_prerequisites(name: str, strategy: str) -> str:
         return ""
     return """## Prerequisites
 
-Verify the following SpecKit extensions are installed:
+Verify the following SpecKit extensions are installed (auto-installed by `scripts/install.sh` when `.specify/` exists):
 
 1. Check `.specify/extensions/architecture-guard/` exists.
-   If missing: `specify extension add DyanGalih/spec-kit-architecture-guard`
+   If missing: `specify extension add architecture-guard --from https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip`
 2. Check `.specify/extensions/architect-preview/` exists.
-   If missing: `specify extension add UmmeHabiba1312/spec-kit-architect-preview`
-3. Check `.specify/extensions/spec-kit-arch/` exists.
-   If missing: `specify extension add bigsmartben/spec-kit-arch`
+   If missing: `specify extension add architect-preview --from https://github.com/UmmeHabiba1312/spec-kit-architect-preview/archive/refs/tags/v1.0.0.zip`
+3. Check `.specify/extensions/arch/` exists.
+   If missing: `specify extension add arch --from https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip`
 
 If any extension cannot be installed, report status "error" with details.
 

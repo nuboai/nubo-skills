@@ -15,8 +15,8 @@ usage() {
 Usage: $0 [--agent cursor-agent,claude,...] [--phases specify,plan,...] [--auto] [--target DIR] [--speckit]
 
 Copies nb-{command}/SKILL.md directories to agent discovery paths.
-With --speckit (or when .specify/ exists in target), also installs SpecKit
-extension, workflows, and presets.
+With --speckit (or when .specify/ exists in target), also bootstraps SpecKit
+extensions, workflows, and presets via the specify CLI.
 EOF
   exit 1
 }
@@ -33,15 +33,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-python3 - "$ROOT" "$AGENTS" "$PHASES" "$AUTO" "$TARGET_DIR" <<'PY'
+python3 - "$ROOT" "$AGENTS" "$PHASES" "$AUTO" "$TARGET_DIR" "$SPECKIT" <<'PY'
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 import yaml
 
-root, agents, phases, auto, target = sys.argv[1:6]
+root, agents, phases, auto, target, speckit_flag = sys.argv[1:7]
 root = Path(root)
 target = Path(target)
 registry = yaml.safe_load((root / "registry.yml").read_text())
@@ -56,6 +57,7 @@ else:
     selected = ["cursor-agent"]
 
 phase_filter = None if phases == "all" else set(p.strip() for p in phases.split(","))
+speckit_enabled = str(speckit_flag).strip().lower() in ("true", "1", "yes") or (target / ".specify").is_dir()
 
 CONTEXT_MARKERS = {
     "claude": "nubo-skills governance",
@@ -126,70 +128,31 @@ for name, entry in registry["commands"].items():
 for agent in selected:
     install_context(agent)
 
-hooks_out = {"hooks": {}}
-for hook, entries in registry.get("hooks", {}).items():
-    hooks_out["hooks"][hook] = []
-    for entry in entries:
-        hooks_out["hooks"][hook].append({
-            "command": entry["command"],
-            "extension": "nubo-skills",
-            "enabled": True,
-            "optional": entry.get("optional", True),
-            "priority": entry.get("priority", 10),
-            "condition": None,
-        })
-
-specify_dir = target / ".specify"
-specify_dir.mkdir(parents=True, exist_ok=True)
-ext_yml = specify_dir / "extensions.yml"
-existing = {}
-if ext_yml.exists():
-    existing = yaml.safe_load(ext_yml.read_text()) or {}
-merged = existing.get("hooks", {})
-for key, value in hooks_out["hooks"].items():
-    merged.setdefault(key, [])
-    merged[key] = [h for h in merged[key] if h.get("extension") != "nubo-skills"] + value
-ext_yml.write_text(yaml.dump({"hooks": merged}, sort_keys=False))
+speckit_extensions: list[str] = []
+bootstrap = root / "scripts" / "bootstrap_speckit.py"
+if speckit_enabled and bootstrap.exists():
+    proc = subprocess.run(
+        [sys.executable, str(bootstrap), "install", str(root), str(target)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.stdout:
+        print(proc.stdout, end="")
+    if proc.stderr:
+        print(proc.stderr, end="", file=sys.stderr)
+    if proc.returncode == 0:
+        for line in proc.stdout.splitlines():
+            if line.strip().startswith("- "):
+                ext = line.strip()[2:].split(" ", 1)[0]
+                speckit_extensions.append(ext)
 
 state = {
     "installed": installed,
     "agents": selected,
     "phases": phases,
+    "speckit_extensions": speckit_extensions,
 }
 (target / ".nubo-skills.state.json").write_text(json.dumps(state, indent=2) + "\n")
 print(f"Installed {len(installed)} skill(s) across {len(selected)} agent(s)")
 PY
-
-install_speckit_layout() {
-  local ext_src="$ROOT/extensions/nubo-skills"
-  local ext_dst="$TARGET_DIR/.specify/extensions/nubo-skills"
-  local wf_dst="$TARGET_DIR/.specify/workflows/nubo"
-  local preset_dst="$TARGET_DIR/.specify/presets"
-
-  if [[ ! -f "$ext_src/extension.yml" ]]; then
-    echo "WARN: $ext_src/extension.yml missing — run scripts/generate_skills.py" >&2
-    return 1
-  fi
-
-  mkdir -p "$TARGET_DIR/.specify/extensions" "$wf_dst" "$preset_dst"
-  rm -rf "$ext_dst"
-  cp -a "$ext_src" "$ext_dst"
-
-  cp "$ROOT"/workflows/nb-*.yml "$ROOT/workflows/registry.yml" "$wf_dst/"
-  cat > "$wf_dst/active-profile.yml" <<'PROFILE'
-profile: default
-PROFILE
-
-  for preset in "$ROOT"/presets/*/preset.yml; do
-    [[ -f "$preset" ]] || continue
-    preset_id="$(basename "$(dirname "$preset")")"
-    mkdir -p "$preset_dst/$preset_id"
-    cp "$preset" "$preset_dst/$preset_id/preset.yml"
-  done
-
-  echo "Installed SpecKit extension, workflows, and presets under .specify/"
-}
-
-if [[ "$SPECKIT" == true || -d "$TARGET_DIR/.specify" ]]; then
-  install_speckit_layout || true
-fi

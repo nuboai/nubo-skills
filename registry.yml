@@ -188,19 +188,23 @@ commands:
     command_template: commands/extended/nb-review-arch/SKILL.md
     composes:
       - type: speckit-extension
-        extension: "DyanGalih/spec-kit-architecture-guard"
-        ref: "v1.0.0"
-        command: "/speckit.architecture-guard.architecture-review"
+        extension_id: architecture-guard
+        ref: "v1.15.0"
+        download_url: "https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip"
+        command: "speckit.architecture-guard.architecture-review"
         upstream_name: architecture-guard
       - type: speckit-extension
-        extension: "UmmeHabiba1312/spec-kit-architect-preview"
+        extension_id: architect-preview
         ref: "v1.0.0"
+        download_url: "https://github.com/UmmeHabiba1312/spec-kit-architect-preview/archive/refs/tags/v1.0.0.zip"
+        command: "speckit.architect-preview"
         upstream_name: architect-preview
       - type: speckit-extension
-        extension: "bigsmartben/spec-kit-arch"
-        ref: "v1.0.0"
-        command: "/speckit.arch.generate"
-        upstream_name: spec-kit-arch
+        extension_id: arch
+        ref: "v1.2.2"
+        download_url: "https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip"
+        command: "speckit.arch.generate"
+        upstream_name: arch
     review_by: "2027-06-01"
 
   nb-test:

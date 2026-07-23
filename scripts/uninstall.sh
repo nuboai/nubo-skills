@@ -9,7 +9,7 @@ usage() {
   cat <<EOF
 Usage: $0 [--target DIR]
 
-Removes skills and governance files recorded in .nubo-skills.state.json.
+Removes skills, governance files, and SpecKit extensions recorded by install.sh.
 EOF
   exit 1
 }
@@ -21,6 +21,10 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1" >&2; usage ;;
   esac
 done
+
+if [[ -f "$ROOT/scripts/bootstrap_speckit.py" ]]; then
+  python3 "$ROOT/scripts/bootstrap_speckit.py" uninstall "$ROOT" "$TARGET_DIR" || true
+fi
 
 python3 - "$ROOT" "$TARGET_DIR" <<'PY'
 import json
@@ -56,19 +60,6 @@ for agent in state.get("agents", []):
     if agent == "cursor-agent" and context_path.exists():
         context_path.unlink()
         removed += 1
-
-ext_yml = target / ".specify" / "extensions.yml"
-if ext_yml.exists():
-    data = yaml.safe_load(ext_yml.read_text()) or {}
-    hooks = data.get("hooks", {})
-    for hook, entries in list(hooks.items()):
-        hooks[hook] = [e for e in entries if e.get("extension") != "nubo-skills"]
-        if not hooks[hook]:
-            del hooks[hook]
-    if hooks:
-        ext_yml.write_text(yaml.dump({"hooks": hooks}, sort_keys=False))
-    else:
-        ext_yml.unlink()
 
 state_path.unlink()
 

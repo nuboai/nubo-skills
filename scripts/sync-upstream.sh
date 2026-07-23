@@ -125,7 +125,7 @@ def lock_compose(entry: dict) -> dict:
     if entry.get("type") == "speckit-extension":
         return {
             "upstream_name": upstream_name,
-            "extension": entry.get("extension", ""),
+            "extension_id": entry.get("extension_id", ""),
             "resolved_ref": declared_ref,
             "integrity": UNVERIFIABLE_INTEGRITY,
         }

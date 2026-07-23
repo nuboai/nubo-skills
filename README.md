@@ -63,8 +63,19 @@ pip install -r requirements.txt
 # Auto-detect all supported agents
 ./scripts/install.sh --auto
 
-# Install SpecKit extension, workflows, and presets
+# Install SpecKit extension, workflows, and presets (when .specify/ exists or --speckit)
 ./scripts/install.sh --speckit --agent cursor-agent
+```
+
+`install.sh` registers extensions via the `specify` CLI when available:
+- `nubo-skills` — `specify extension add nubo-skills --dev <repo>/extensions/nubo-skills`
+- Community deps — `specify extension add <id> --from <pinned-release.zip>` (architecture-guard, architect-preview, arch)
+
+Optional: add the curated extension catalog so `specify extension add <id>` works without `--from`:
+
+```bash
+specify extension catalog add https://raw.githubusercontent.com/nuboai/nubo-skills/master/extensions/catalog.json \
+  --name nubo-skills --install-allowed
 ```
 
 ## Commands
@@ -92,7 +103,7 @@ All commands live under `commands/{core,extended,utilities}/nb-{command}/SKILL.m
 | `nb-interview` | specify | addyosmani (interview-me, idea-refine) |
 | `nb-review-code` | review | addyosmani (code-review, simplification, perf) |
 | `nb-review-security` | review | addyosmani + trailofbits (semgrep) |
-| `nb-review-arch` | review | SpecKit extensions (architecture-guard, architect-preview, spec-kit-arch) |
+| `nb-review-arch` | review | SpecKit extensions (architecture-guard, architect-preview, arch) |
 | `nb-test` | test | addyosmani (browser-testing) + anthropics (webapp-testing) |
 | `nb-deploy` | deploy | addyosmani (shipping, CI/CD, observability, git, deprecation) |
 | `nb-mcp` | implement | anthropics (mcp-builder) |
@@ -153,6 +164,7 @@ nubo-skills/
 │   ├── install.sh            # Fallback agent installer (+ --speckit layout)
 │   └── generate_skills.py    # Regenerate SKILL.md + extension manifest
 ├── extensions/
+│   ├── catalog.json          # Curated install-allowed extension catalog
 │   └── nubo-skills/          # SpecKit extension (extension.yml + commands/)
 ├── integrations/
 │   ├── agents.yml            # Agent discovery paths

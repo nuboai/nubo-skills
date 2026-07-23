@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-07-23T00:00:00Z",
+  "catalog_url": "https://raw.githubusercontent.com/nuboai/nubo-skills/master/extensions/catalog.json",
+  "extensions": {
+    "architecture-guard": {
+      "name": "Architecture Guard",
+      "id": "architecture-guard",
+      "version": "1.15.0",
+      "description": "Framework-agnostic architecture review extension for validating implementation against governance and architecture constitutions.",
+      "author": "DyanGalih",
+      "license": "MIT",
+      "download_url": "https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip",
+      "repository": "https://github.com/DyanGalih/spec-kit-architecture-guard",
+      "requires": {
+        "speckit_version": ">=0.1.0"
+      },
+      "provides": {
+        "commands": 14,
+        "hooks": 3
+      },
+      "tags": ["architecture", "governance", "nubo-curated"],
+      "verified": true
+    },
+    "architect-preview": {
+      "name": "Architect Impact Previewer",
+      "id": "architect-preview",
+      "version": "1.0.0",
+      "description": "Predicts architectural impact, complexity, and risks of proposed changes before implementation.",
+      "author": "Umme Habiba",
+      "license": "MIT",
+      "download_url": "https://github.com/UmmeHabiba1312/spec-kit-architect-preview/archive/refs/tags/v1.0.0.zip",
+      "repository": "https://github.com/UmmeHabiba1312/spec-kit-architect-preview",
+      "requires": {
+        "speckit_version": ">=0.1.0"
+      },
+      "provides": {
+        "commands": 1,
+        "hooks": 0
+      },
+      "tags": ["architecture", "preview", "nubo-curated"],
+      "verified": true
+    },
+    "arch": {
+      "name": "Architecture Workflow",
+      "id": "arch",
+      "version": "1.2.2",
+      "description": "Generate or reverse project-level 4+1 architecture views with per-view and full-workflow commands.",
+      "author": "bigsmartben",
+      "license": "MIT",
+      "download_url": "https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip",
+      "repository": "https://github.com/bigsmartben/spec-kit-arch",
+      "requires": {
+        "speckit_version": ">=0.8.10"
+      },
+      "provides": {
+        "commands": 8,
+        "hooks": 0
+      },
+      "tags": ["architecture", "4plus1", "nubo-curated"],
+      "verified": true
+    }
+  }
+}

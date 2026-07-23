@@ -213,6 +213,20 @@ def resolve_compose_path(entry: dict) -> Path | None:
     return None
 
 
+def check_speckit_extensions(registry: dict) -> None:
+    for name, entry in registry.get("commands", {}).items():
+        for compose in entry.get("composes", []):
+            if compose.get("type") != "speckit-extension":
+                continue
+            ext_id = compose.get("extension_id", "").strip()
+            if not ext_id:
+                err(f"{name}: speckit-extension missing extension_id")
+            if not compose.get("download_url", "").strip():
+                err(f"{name}: speckit-extension {ext_id or '<unknown>'} missing download_url")
+            if not compose.get("ref", "").strip():
+                err(f"{name}: speckit-extension {ext_id or '<unknown>'} missing ref")
+
+
 def check_upstream_paths(registry: dict) -> None:
     for name, entry in registry.get("commands", {}).items():
         for compose in entry.get("composes", []):
@@ -434,6 +448,7 @@ def main() -> int:
         entry = registry.get("commands", {}).get(name, {})
         check_skill(name, path, entry)
     check_governance(registry)
+    check_speckit_extensions(registry)
     check_upstream_paths(registry)
     check_hooks(registry)
     check_bundle_and_workflows(registry)

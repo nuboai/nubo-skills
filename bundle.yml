@@ -30,11 +30,11 @@ provides:
     - id: nubo-skills
       version: "1.0.0"
     - id: architecture-guard
-      version: "1.0.0"
+      version: "1.15.0"
     - id: architect-preview
       version: "1.0.0"
-    - id: spec-kit-arch
-      version: "1.0.0"
+    - id: arch
+      version: "1.2.2"
   workflows:
     - id: nb-greenfield
       version: "1.0.0"
