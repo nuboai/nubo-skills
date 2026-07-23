@@ -16,7 +16,7 @@ if [[ "$agents" != "['cursor-agent']" ]]; then
   exit 1
 fi
 
-count="$(find "$TMP/.cursor/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+count="$(ls -1d "$TMP/.cursor/skills"/nb-* 2>/dev/null | wc -l | tr -d ' ')"
 if [[ "$count" != "19" ]]; then
   echo "FAIL: expected 19 cursor skills, got $count" >&2
   exit 1

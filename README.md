@@ -10,7 +10,7 @@ Projects should not install upstream skills directly. Depend on this repo instea
 - **8 scenario workflows** — greenfield, feature pipeline, brownfield onboarding, hotfix, review-only, security audit, docs catch-up, architecture alignment
 - **3 methodology presets** — conventions, TDD, frontend
 - **Version pinning** — `registry.yml` declares upstream refs; `nubo-skills.lock` records SHA256 hashes
-- **Agent-agnostic distribution** — SpecKit bundle (primary) or fallback `install.sh` for Cursor, Claude, Codex, Gemini, Copilot, Devin
+- **Agent-agnostic distribution** — SpecKit bundle (public catalogs) or `bootstrap.sh` / `install.sh` fallback (private-repo safe)
 - **CI validation** — 14 automated checks plus optional SkillSpector security scanning
 
 ## Quick start
@@ -45,7 +45,59 @@ Invoke a single command:
 /nb.nb-implement
 ```
 
-### Non-SpecKit projects (fallback)
+### Private repositories (recommended fallback)
+
+`specify bundle` catalogs use `raw.githubusercontent.com`, which does **not** work for
+private repos. Use the bootstrap installer instead — same auth model as
+[dev-workspace](https://github.com/nuboai/dev-workspace): `gh auth login` or
+`NUBOAI_GITHUB_TOKEN` with git URL rewrite, then clone via HTTPS.
+
+Authenticate once:
+
+```bash
+gh auth login
+# CI / Cloud agents:
+export NUBOAI_GITHUB_TOKEN=...
+git config --global url."https://x-access-token:${NUBOAI_GITHUB_TOKEN}@github.com/nuboai/".insteadOf "https://github.com/nuboai/"
+```
+
+Install into a project from a local nubo-skills clone:
+
+```bash
+./bootstrap.sh --target /path/to/your-project
+```
+
+Remote bootstrap without cloning nubo-skills first:
+
+```bash
+cd /path/to/your-project
+gh api repos/nuboai/nubo-skills/contents/bootstrap.sh?ref=master \
+  --jq .content | base64 -d | bash -s -- --target .
+```
+
+Pin a release:
+
+```bash
+NUBO_SKILLS_REF=v1.0.1 ./bootstrap.sh --target .
+```
+
+Try SpecKit bundle first, fall back to `install.sh` when the catalog is unreachable:
+
+```bash
+./bootstrap.sh --target . --try-bundle
+```
+
+Validate prerequisites without installing:
+
+```bash
+./bootstrap.sh --target . --check
+```
+
+`bootstrap.sh` clones into `~/.cache/nubo-skills` when needed, then runs
+`scripts/install.sh` to copy skills into the target repo (`.cursor/skills/`,
+`.specify/`, etc.).
+
+### Non-SpecKit projects (manual install)
 
 Clone with submodules, then use the fallback installer:
 

@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-chmod +x "$ROOT"/scripts/*.sh
+chmod +x "$ROOT"/scripts/*.sh "$ROOT"/scripts/lib/common.sh "$ROOT"/bootstrap.sh
 
 if [[ "$UPGRADE" == true ]]; then
   "$ROOT/scripts/ensure-deps.sh" --upgrade
