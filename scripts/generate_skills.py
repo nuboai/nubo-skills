@@ -543,7 +543,7 @@ def generate_extension() -> None:
         shutil.copytree(src, dst)
         skill = dst / "SKILL.md"
         provides.append({
-            "name": f"nb.{name}",
+            "name": f"speckit.nubo-skills.{name}",
             "file": f"commands/{layer}/{name}/SKILL.md",
             "description": parse_skill_description(skill),
         })

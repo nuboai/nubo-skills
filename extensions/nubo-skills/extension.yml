@@ -11,62 +11,62 @@ requires:
   speckit_version: '>=0.8.5'
 provides:
   commands:
-  - name: nb.nb-constitution
+  - name: speckit.nubo-skills.nb-constitution
     file: commands/core/nb-constitution/SKILL.md
     description: Define or verify project-wide invariants and architecture rules.
-  - name: nb.nb-specify
+  - name: speckit.nubo-skills.nb-specify
     file: commands/core/nb-specify/SKILL.md
     description: Create or update a feature specification from requirements.
-  - name: nb.nb-clarify
+  - name: speckit.nubo-skills.nb-clarify
     file: commands/core/nb-clarify/SKILL.md
     description: Clarify ambiguities in the current feature specification.
-  - name: nb.nb-plan
+  - name: speckit.nubo-skills.nb-plan
     file: commands/core/nb-plan/SKILL.md
     description: Design the technical approach and architecture for the feature.
-  - name: nb.nb-tasks
+  - name: speckit.nubo-skills.nb-tasks
     file: commands/core/nb-tasks/SKILL.md
     description: Break the plan into ordered, actionable implementation tasks.
-  - name: nb.nb-implement
+  - name: speckit.nubo-skills.nb-implement
     file: commands/core/nb-implement/SKILL.md
     description: Implement the feature according to spec, plan, and tasks.
-  - name: nb.nb-analyze
+  - name: speckit.nubo-skills.nb-analyze
     file: commands/core/nb-analyze/SKILL.md
     description: Analyze implementation against spec for gaps and conformance.
-  - name: nb.nb-converge
+  - name: speckit.nubo-skills.nb-converge
     file: commands/core/nb-converge/SKILL.md
     description: Iterate on gaps until spec and implementation converge.
-  - name: nb.nb-checklist
+  - name: speckit.nubo-skills.nb-checklist
     file: commands/core/nb-checklist/SKILL.md
     description: Run final release checklist before shipping.
-  - name: nb.nb-interview
+  - name: speckit.nubo-skills.nb-interview
     file: commands/extended/nb-interview/SKILL.md
     description: Stakeholder interview and idea refinement before specification.
-  - name: nb.nb-review-code
+  - name: speckit.nubo-skills.nb-review-code
     file: commands/extended/nb-review-code/SKILL.md
     description: Comprehensive code review covering quality, simplification, and performance.
-  - name: nb.nb-review-security
+  - name: speckit.nubo-skills.nb-review-security
     file: commands/extended/nb-review-security/SKILL.md
     description: Security hardening review and static analysis.
-  - name: nb.nb-review-arch
+  - name: speckit.nubo-skills.nb-review-arch
     file: commands/extended/nb-review-arch/SKILL.md
     description: 'Architecture review: drift detection, impact preview, and contract
       validation.'
-  - name: nb.nb-test
+  - name: speckit.nubo-skills.nb-test
     file: commands/extended/nb-test/SKILL.md
     description: Browser and webapp testing for the implementation.
-  - name: nb.nb-deploy
+  - name: speckit.nubo-skills.nb-deploy
     file: commands/extended/nb-deploy/SKILL.md
     description: Ship, CI/CD, versioning, observability, and deprecation lifecycle.
-  - name: nb.nb-mcp
+  - name: speckit.nubo-skills.nb-mcp
     file: commands/extended/nb-mcp/SKILL.md
     description: Build MCP servers and tools following best practices.
-  - name: nb.nb-docs
+  - name: speckit.nubo-skills.nb-docs
     file: commands/extended/nb-docs/SKILL.md
     description: Generate documentation and architecture decision records.
-  - name: nb.nb-review-skill
+  - name: speckit.nubo-skills.nb-review-skill
     file: commands/extended/nb-review-skill/SKILL.md
     description: Review nubo-skills command definitions for governance compliance.
-  - name: nb.nb-debug
+  - name: speckit.nubo-skills.nb-debug
     file: commands/utilities/nb-debug/SKILL.md
     description: Debug failures and recover from errors reactively.
 tags:

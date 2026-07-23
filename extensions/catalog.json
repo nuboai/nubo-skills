@@ -3,6 +3,25 @@
   "updated_at": "2026-07-23T00:00:00Z",
   "catalog_url": "https://raw.githubusercontent.com/nuboai/nubo-skills/master/extensions/catalog.json",
   "extensions": {
+    "nubo-skills": {
+      "name": "Nubo Skills",
+      "id": "nubo-skills",
+      "version": "1.0.0",
+      "description": "Governed nb-{command} skills for the full Nubo SDLC pipeline",
+      "author": "Nubo SDLC Team",
+      "license": "Proprietary",
+      "download_url": "https://github.com/nuboai/nubo-skills/releases/download/v1.0.1/nubo-skills-v1.0.1.zip",
+      "repository": "https://github.com/nuboai/nubo-skills",
+      "requires": {
+        "speckit_version": ">=0.8.5"
+      },
+      "provides": {
+        "commands": 19,
+        "hooks": 0
+      },
+      "tags": ["nubo", "governance", "sdlc", "nubo-curated"],
+      "verified": true
+    },
     "architecture-guard": {
       "name": "Architecture Guard",
       "id": "architecture-guard",
