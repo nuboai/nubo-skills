@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import hashlib
 from datetime import datetime, date
 from pathlib import Path
 
@@ -330,6 +331,16 @@ def check_bundle_and_workflows(registry: dict) -> None:
         return
     with open(bundle_path) as f:
         bundle = yaml.safe_load(f)
+    ext_manifest = ROOT / "extensions" / "nubo-skills" / "extension.yml"
+    if not ext_manifest.exists():
+        err("extensions/nubo-skills/extension.yml missing — run scripts/generate_skills.py")
+    bundle_exts = [e["id"] for e in bundle.get("components", {}).get("extensions", [])]
+    if "nubo-skills" in bundle_exts and not ext_manifest.exists():
+        err("bundle.yml references nubo-skills extension but manifest is missing")
+    for preset_id in (p["id"] for p in bundle.get("components", {}).get("presets", [])):
+        preset_file = ROOT / "presets" / preset_id / "preset.yml"
+        if not preset_file.exists():
+            err(f"bundle preset {preset_id} missing at presets/{preset_id}/preset.yml")
     wf_reg_path = ROOT / "workflows" / "registry.yml"
     if not wf_reg_path.exists():
         err("workflows/registry.yml missing")
@@ -371,9 +382,47 @@ def check_lock(registry: dict) -> None:
         return
     with open(lock_path) as f:
         lock = yaml.safe_load(f) or {}
-    for name in registry.get("commands", {}):
-        if name not in lock:
+
+    commands_lock = lock.get("commands", lock)
+    presets_lock = lock.get("presets", {})
+
+    for name, entry in registry.get("commands", {}).items():
+        if name not in commands_lock:
             warn(f"{name}: missing from nubo-skills.lock")
+            continue
+        _verify_lock_compose(name, entry.get("composes", []), commands_lock[name].get("composes", []))
+
+    for preset_name, preset in registry.get("presets", {}).items():
+        if preset_name not in presets_lock:
+            warn(f"preset {preset_name}: missing from nubo-skills.lock")
+            continue
+        _verify_lock_compose(
+            f"preset:{preset_name}",
+            preset.get("composes", []),
+            presets_lock[preset_name].get("composes", []),
+        )
+
+
+def _verify_lock_compose(owner: str, composes: list, locked: list) -> None:
+    by_name = {c.get("upstream_name"): c for c in locked}
+    for compose in composes:
+        upstream_name = compose.get("upstream_name")
+        locked_entry = by_name.get(upstream_name)
+        if not locked_entry:
+            warn(f"{owner}: lock missing compose {upstream_name}")
+            continue
+        integrity = locked_entry.get("integrity", "")
+        if integrity == "sha256-missing":
+            err(f"{owner}: lock has sha256-missing for {upstream_name} — run scripts/sync-upstream.sh")
+        if integrity == "sha256-unverifiable":
+            if compose.get("type") != "speckit-extension":
+                err(f"{owner}: unexpected sha256-unverifiable for {upstream_name}")
+            continue
+        path = resolve_compose_path(compose)
+        if path and path.exists():
+            actual = "sha256-" + hashlib.sha256(path.read_bytes()).hexdigest()
+            if integrity != actual:
+                err(f"{owner}: lock integrity drift for {upstream_name} — run scripts/sync-upstream.sh")
 
 
 def main() -> int:

@@ -11,8 +11,10 @@ components:
       priority: 50
     - id: nb-tdd
       version: "1.0.0"
+      strategy: merge
     - id: nb-frontend
       version: "1.0.0"
+      strategy: merge
   extensions:
     - id: nubo-skills
       version: "1.0.0"

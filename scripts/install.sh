@@ -8,12 +8,15 @@ AGENTS=""
 PHASES="all"
 AUTO=false
 TARGET_DIR="."
+SPECKIT=false
 
 usage() {
   cat <<EOF
-Usage: $0 [--agent cursor-agent,claude,...] [--phases specify,plan,...] [--auto] [--target DIR]
+Usage: $0 [--agent cursor-agent,claude,...] [--phases specify,plan,...] [--auto] [--target DIR] [--speckit]
 
 Copies nb-{command}/SKILL.md directories to agent discovery paths.
+With --speckit (or when .specify/ exists in target), also installs SpecKit
+extension, workflows, and presets.
 EOF
   exit 1
 }
@@ -24,6 +27,7 @@ while [[ $# -gt 0 ]]; do
     --phases) PHASES="$2"; shift 2 ;;
     --auto) AUTO=true; shift ;;
     --target) TARGET_DIR="$2"; shift 2 ;;
+    --speckit) SPECKIT=true; shift ;;
     -h|--help) usage ;;
     *) echo "Unknown option: $1" >&2; usage ;;
   esac
@@ -136,3 +140,37 @@ while IFS= read -r agent; do
   esac
 done < "$TARGET_DIR/.nubo-skills.agents"
 rm -f "$TARGET_DIR/.nubo-skills.agents"
+
+install_speckit_layout() {
+  local ext_src="$ROOT/extensions/nubo-skills"
+  local ext_dst="$TARGET_DIR/.specify/extensions/nubo-skills"
+  local wf_dst="$TARGET_DIR/.specify/workflows/nubo"
+  local preset_dst="$TARGET_DIR/.specify/presets"
+
+  if [[ ! -f "$ext_src/extension.yml" ]]; then
+    echo "WARN: $ext_src/extension.yml missing — run scripts/generate_skills.py" >&2
+    return 1
+  fi
+
+  mkdir -p "$TARGET_DIR/.specify/extensions" "$wf_dst" "$preset_dst"
+  rm -rf "$ext_dst"
+  cp -a "$ext_src" "$ext_dst"
+
+  cp "$ROOT"/workflows/nb-*.yml "$ROOT/workflows/registry.yml" "$wf_dst/"
+  cat > "$wf_dst/active-profile.yml" <<'PROFILE'
+profile: default
+PROFILE
+
+  for preset in "$ROOT"/presets/*/preset.yml; do
+    [[ -f "$preset" ]] || continue
+    preset_id="$(basename "$(dirname "$preset")")"
+    mkdir -p "$preset_dst/$preset_id"
+    cp "$preset" "$preset_dst/$preset_id/preset.yml"
+  done
+
+  echo "Installed SpecKit extension, workflows, and presets under .specify/"
+}
+
+if [[ "$SPECKIT" == true || -d "$TARGET_DIR/.specify" ]]; then
+  install_speckit_layout || true
+fi

@@ -55,6 +55,9 @@ pip install -r requirements.txt
 
 # Auto-detect all supported agents
 ./scripts/install.sh --auto
+
+# Install SpecKit extension, workflows, and presets
+./scripts/install.sh --speckit --agent cursor-agent
 ```
 
 ## Commands
@@ -134,11 +137,13 @@ nubo-skills/
 ├── presets/                  # nb-conventions, nb-tdd, nb-frontend
 ├── workflows/                # 8 scenario YAML workflows + registry
 ├── scripts/
-│   ├── validate.sh           # 14 validation checks
+│   ├── validate.sh           # Structural + integrity validation
 │   ├── sync-upstream.sh      # Regenerate lock file
 │   ├── upgrade.sh            # Bump upstream ref + sync + validate
-│   ├── install.sh            # Fallback agent installer
-│   └── generate_skills.py    # Regenerate SKILL.md templates
+│   ├── install.sh            # Fallback agent installer (+ --speckit layout)
+│   └── generate_skills.py    # Regenerate SKILL.md + extension manifest
+├── extensions/
+│   └── nubo-skills/          # SpecKit extension (extension.yml + commands/)
 ├── integrations/
 │   ├── agents.yml            # Agent discovery paths
 │   ├── prompts-guide.md      # User prompt conventions
@@ -173,16 +178,19 @@ Runs structural validation, upstream path checks, hook wiring, workflow schema v
 ### Upgrade an upstream dependency
 
 ```bash
-./scripts/upgrade.sh <command> <upstream_name> <new_ref>
+./scripts/upgrade.sh command <command> <upstream_name> <new_ref>
+./scripts/upgrade.sh preset <preset> <upstream_name> <new_ref>
 
-# Example
-./scripts/upgrade.sh nb-review-code code-review-and-quality fefc408
+# Examples
+./scripts/upgrade.sh command nb-review-code code-review-and-quality fefc408
+./scripts/upgrade.sh preset nb-conventions context-engineering fefc408
 ```
 
-### Regenerate command templates
+### Regenerate command templates and extension manifest
 
 ```bash
 python3 scripts/generate_skills.py
+./scripts/sync-upstream.sh
 ```
 
 ## Upstream sources
@@ -254,8 +262,8 @@ See `examples/vendor/nb-pimcore/` for a reference implementation.
 
 GitHub Actions runs on every push and pull request:
 
-- **validate** — `./scripts/validate.sh` (required)
-- **skillspector** — security scan of `commands/` with SARIF output (informational)
+- **validate** — regenerate extension manifest, sync lock file, run `./scripts/validate.sh` (required)
+- **skillspector** — security scan of `commands/` with SARIF output and baseline suppression (required)
 
 ## License
 

@@ -18,25 +18,30 @@ jobs:
           python-version: "3.12"
       - run: pip install pyyaml
       - run: chmod +x scripts/*.sh
+      - run: python3 scripts/generate_skills.py
+      - run: ./scripts/sync-upstream.sh
       - run: ./scripts/validate.sh
 
   skillspector:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install SkillSpector
-        run: pip install skillspector || echo "SkillSpector install skipped"
+        run: pip install skillspector
       - name: Scan commands
         run: |
           if command -v skillspector >/dev/null 2>&1; then
             if [ -f .skillspector-baseline.yml ]; then
-              skillspector scan commands/ --format sarif --baseline .skillspector-baseline.yml --output skillspector-report.sarif || true
+              skillspector scan commands/ --format sarif --baseline .skillspector-baseline.yml --output skillspector-report.sarif
             else
-              skillspector scan commands/ --format sarif --output skillspector-report.sarif || true
+              skillspector scan commands/ --format sarif --output skillspector-report.sarif
             fi
           else
-            echo "SkillSpector not available — skipping security scan"
+            echo "SkillSpector not available — failing CI" >&2
+            exit 1
           fi
       - uses: actions/upload-artifact@v4
         if: always()

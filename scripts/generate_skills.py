@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -511,6 +514,63 @@ def write_references(cmd: dict) -> None:
             (base / f"{f}.md").write_text(f"# {f.replace('-', ' ').title()}\n\nDetailed sub-procedure.\n")
 
 
+def parse_skill_description(skill_path: Path) -> str:
+    text = skill_path.read_text()
+    if not text.startswith("---"):
+        return skill_path.parent.name
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return skill_path.parent.name
+    meta = yaml.safe_load(parts[1]) or {}
+    return str(meta.get("description") or skill_path.parent.name)
+
+
+def generate_extension() -> None:
+    registry = yaml.safe_load((ROOT / "registry.yml").read_text())
+    ext_root = ROOT / "extensions" / "nubo-skills"
+    ext_commands = ext_root / "commands"
+    if ext_commands.exists():
+        shutil.rmtree(ext_commands)
+    ext_commands.mkdir(parents=True, exist_ok=True)
+
+    provides: list[dict[str, str]] = []
+    for name, entry in registry.get("commands", {}).items():
+        layer = entry["layer"]
+        if layer == "utility":
+            layer = "utilities"
+        src = ROOT / "commands" / layer / name
+        dst = ext_commands / layer / name
+        shutil.copytree(src, dst)
+        skill = dst / "SKILL.md"
+        provides.append({
+            "name": f"nb.{name}",
+            "file": f"commands/{layer}/{name}/SKILL.md",
+            "description": parse_skill_description(skill),
+        })
+
+    manifest = {
+        "schema_version": "1.0",
+        "extension": {
+            "id": "nubo-skills",
+            "name": "Nubo Skills",
+            "version": "1.0.0",
+            "description": "Governed nb-{command} skills for the full Nubo SDLC pipeline",
+            "author": "Nubo SDLC Team",
+            "repository": "https://github.com/nuboai/nubo-skills",
+            "license": "Proprietary",
+        },
+        "requires": {
+            "speckit_version": ">=0.8.5",
+        },
+        "provides": {
+            "commands": provides,
+        },
+        "tags": ["nubo", "governance", "sdlc"],
+    }
+    (ext_root / "extension.yml").write_text(yaml.dump(manifest, sort_keys=False))
+    print(f"generated {ext_root.relative_to(ROOT)}/extension.yml")
+
+
 def main() -> None:
     for cmd in CATALOG:
         path = ROOT / "commands" / cmd["layer"] / cmd["name"] / "SKILL.md"
@@ -518,6 +578,7 @@ def main() -> None:
         path.write_text(render_skill(cmd))
         write_references(cmd)
         print(f"generated {path.relative_to(ROOT)}")
+    generate_extension()
 
 
 if __name__ == "__main__":
