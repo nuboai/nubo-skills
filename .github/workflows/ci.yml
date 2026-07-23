@@ -16,10 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pyyaml
       - run: chmod +x scripts/*.sh
-      - run: python3 scripts/generate_skills.py
-      - run: ./scripts/sync-upstream.sh
+      - run: ./scripts/setup.sh
       - run: ./scripts/validate.sh
       - run: ./scripts/test_install.sh
 

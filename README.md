@@ -146,7 +146,9 @@ nubo-skills/
 ├── workflows/                # 8 scenario YAML workflows + registry
 ├── scripts/
 │   ├── validate.sh           # Structural + integrity validation
-│   ├── sync-upstream.sh      # Regenerate lock file
+│   ├── setup.sh              # Bootstrap Python deps + submodules + lock
+│   ├── ensure-deps.sh        # Auto-install Python deps + init submodules
+│   ├── sync-upstream.sh      # Checkout pinned refs + regenerate lock
 │   ├── upgrade.sh            # Bump upstream ref + sync + validate
 │   ├── install.sh            # Fallback agent installer (+ --speckit layout)
 │   └── generate_skills.py    # Regenerate SKILL.md + extension manifest
@@ -164,9 +166,28 @@ nubo-skills/
 
 ### Prerequisites
 
+One-shot bootstrap (recommended):
+
 ```bash
-pip install -r requirements.txt
+./scripts/setup.sh
+```
+
+This installs Python dependencies, initializes upstream submodules, checks out pinned refs from `registry.yml`, regenerates the extension manifest, and refreshes `nubo-skills.lock`.
+
+Manual equivalent:
+
+```bash
+./scripts/ensure-deps.sh
 git submodule update --init --recursive
+./scripts/sync-upstream.sh --checkout
+python3 scripts/generate_skills.py
+./scripts/sync-upstream.sh
+```
+
+To update dependencies to latest pinned refs:
+
+```bash
+./scripts/setup.sh --upgrade
 ```
 
 ### Validate

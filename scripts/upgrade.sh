@@ -31,6 +31,8 @@ if [[ "$TARGET" != "command" && "$TARGET" != "preset" ]]; then
   usage
 fi
 
+"$ROOT/scripts/ensure-deps.sh"
+
 python3 - "$TARGET" "$NAME" "$UPSTREAM" "$NEW_REF" <<'PY'
 import sys
 from pathlib import Path
