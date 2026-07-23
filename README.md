@@ -62,6 +62,9 @@ pip install -r requirements.txt
 
 # Auto-detect all supported agents
 ./scripts/install.sh --auto
+
+# Install SpecKit extension, workflows, and presets
+./scripts/install.sh --speckit --agent cursor-agent
 ```
 
 ## Commands
@@ -90,21 +93,21 @@ All commands live under `commands/{core,extended,utilities}/nb-{command}/SKILL.m
 | `nb-review-code` | review | addyosmani (code-review, simplification, perf) |
 | `nb-review-security` | review | addyosmani + trailofbits (semgrep) |
 | `nb-review-arch` | review | SpecKit extensions (architecture-guard, architect-preview, spec-kit-arch) |
-| `nb-test` | test | addyosmani (testing) |
+| `nb-test` | test | addyosmani (browser-testing) + anthropics (webapp-testing) |
 | `nb-deploy` | deploy | addyosmani (shipping, CI/CD, observability, git, deprecation) |
 | `nb-mcp` | implement | anthropics (mcp-builder) |
-| `nb-docs` | docs | addyosmani (documentation) |
+| `nb-docs` | cross-cutting | addyosmani (documentation-and-adrs) |
 | `nb-review-skill` | review | SkillSpector governance scan |
 
 ### Utility
 
 | Command | Phase | Description |
 |---------|-------|-------------|
-| `nb-debug` | debug | Systematic debugging with minimal scope |
+| `nb-debug` | utilities | Systematic debugging with minimal scope |
 
 ## Workflows
 
-Scenario workflows orchestrate commands with gates and prompts. See `workflows/registry.yml` for when to use each.
+Scenario workflows orchestrate commands with gates and prompts. All workflows use the SpecKit workflow schema (`schema_version: "1.0"`). See `workflows/registry.yml` for when to use each.
 
 | Workflow | Scenario | Entry |
 |----------|----------|-------|
@@ -124,8 +127,8 @@ Methodology presets inject additional guidance into commands via SpecKit composi
 | Preset | Strategy | Effect |
 |--------|----------|--------|
 | `nb-conventions` | wrap (priority 50) | Nubo naming, v2 completion response, context-engineering |
-| `nb-tdd` | merge into `nb-implement` | Test-driven development practices |
-| `nb-frontend` | merge into `nb-implement` | Frontend design and component patterns |
+| `nb-tdd` | merge into `nb-implement` | Test-driven and doubt-driven development |
+| `nb-frontend` | merge into `nb-implement` | Frontend UI engineering and design patterns |
 
 ## Repository structure
 
@@ -142,11 +145,13 @@ nubo-skills/
 ├── presets/                  # nb-conventions, nb-tdd, nb-frontend
 ├── workflows/                # 8 scenario YAML workflows + registry
 ├── scripts/
-│   ├── validate.sh           # 14 validation checks
+│   ├── validate.sh           # Structural + integrity validation
 │   ├── sync-upstream.sh      # Regenerate lock file
 │   ├── upgrade.sh            # Bump upstream ref + sync + validate
-│   ├── install.sh            # Fallback agent installer
-│   └── generate_skills.py    # Regenerate SKILL.md templates
+│   ├── install.sh            # Fallback agent installer (+ --speckit layout)
+│   └── generate_skills.py    # Regenerate SKILL.md + extension manifest
+├── extensions/
+│   └── nubo-skills/          # SpecKit extension (extension.yml + commands/)
 ├── integrations/
 │   ├── agents.yml            # Agent discovery paths
 │   ├── prompts-guide.md      # User prompt conventions
@@ -170,7 +175,7 @@ git submodule update --init --recursive
 ./scripts/validate.sh
 ```
 
-Runs 14 checks: naming conventions, layer paths, completion contract, registry consistency, hook wiring, workflow validity, bundle integrity, frontmatter schema, and progressive disclosure rules.
+Runs structural validation, upstream path checks, hook wiring, workflow schema validation, and progressive disclosure link resolution.
 
 ### Sync upstream and regenerate lock file
 
@@ -181,16 +186,19 @@ Runs 14 checks: naming conventions, layer paths, completion contract, registry c
 ### Upgrade an upstream dependency
 
 ```bash
-./scripts/upgrade.sh <command> <upstream_name> <new_ref>
+./scripts/upgrade.sh command <command> <upstream_name> <new_ref>
+./scripts/upgrade.sh preset <preset> <upstream_name> <new_ref>
 
-# Example
-./scripts/upgrade.sh nb-review-code code-review-and-quality fefc408
+# Examples
+./scripts/upgrade.sh command nb-review-code code-review-and-quality fefc408
+./scripts/upgrade.sh preset nb-conventions context-engineering fefc408
 ```
 
-### Regenerate command templates
+### Regenerate command templates and extension manifest
 
 ```bash
 python3 scripts/generate_skills.py
+./scripts/sync-upstream.sh
 ```
 
 ## Upstream sources
@@ -230,12 +238,19 @@ Every command emits a v2 completion response when finished:
 
 ```json
 {
-  "status": "complete",
   "command": "nb-specify",
-  "artifacts": ["specs/001-feature/spec.md"],
-  "metrics": { "files_created": 1 },
+  "status": "success",
+  "phase": "specify",
+  "artifacts": [
+    { "path": "specs/001-feature/spec.md", "action": "created", "lines": 0 }
+  ],
+  "metrics": {
+    "duration_s": 0,
+    "files_read": 0,
+    "files_written": 0
+  },
   "next_command": "nb-clarify",
-  "findings": []
+  "message": "Specification created for feature 001"
 }
 ```
 
@@ -255,8 +270,8 @@ See `examples/vendor/nb-pimcore/` for a reference implementation.
 
 GitHub Actions runs on every push and pull request:
 
-- **validate** — `./scripts/validate.sh` (required)
-- **skillspector** — security scan of `commands/` with SARIF output (informational)
+- **validate** — regenerate extension manifest, sync lock file, run `./scripts/validate.sh` (required)
+- **skillspector** — security scan of `commands/` with SARIF output and baseline suppression (required)
 
 ## License
 

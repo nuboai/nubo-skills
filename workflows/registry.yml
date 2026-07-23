@@ -7,7 +7,7 @@ workflows:
     use_instead_of: "Running nb-constitution → nb-specify → ... manually"
     direct_command_when: "Never for first bootstrap — always use this workflow"
     entry: "specify workflow run nb-greenfield"
-    gates: 2
+    gates: 3
 
   nb-feature-pipeline:
     scenario: new-feature

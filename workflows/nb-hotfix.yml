@@ -1,16 +1,26 @@
-id: nb-hotfix
-name: "Nubo Hotfix"
-description: "Fast path for small scoped fixes"
-hooks_profile: review-only
+schema_version: "1.0"
+workflow:
+  id: nb-hotfix
+  name: "Nubo Hotfix"
+  version: "1.0.0"
+  author: "Nubo"
+  description: "Fast path for small scoped fixes"
+  hooks_profile: review-only
 
 steps:
   - id: patch-spec
     command: nb.nb-specify
-    mode: patch
+    input:
+      args: "patch"
 
   - id: implement
     command: nb.nb-implement
 
+  - id: review-code
+    command: nb.nb-review-code
+
   - id: review-final
     type: gate
-    approvers: ["@nubo/sdlc-team"]
+    message: "Approve hotfix before merge."
+    options: [approve, reject]
+    on_reject: abort

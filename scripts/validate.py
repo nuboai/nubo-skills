@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import hashlib
 from datetime import datetime, date
 from pathlib import Path
 
@@ -42,6 +43,18 @@ USER_PROMPT_COMMANDS = {
 }
 EXECUTION_MODEL_COMMANDS = {"nb-review-code", "nb-review-arch", "nb-deploy"}
 VALID_HOOK_PROFILES = {"full", "default", "arch-only", "review-only", "none"}
+VALID_STEP_TYPES = {
+    "command", "shell", "prompt", "gate", "if",
+    "switch", "while", "do-while", "fan-out", "fan-in",
+}
+VALID_STRATEGIES = {"wrap", "merge", "sequence", "standalone", "utility"}
+REF_LINK_RE = re.compile(r"\]\((references/[^)]+)\)")
+SUBMODULE_MAP = {
+    "github/spec-kit": "upstream/speckit",
+    "addyosmani/agent-skills": "upstream/addyosmani",
+    "anthropics/skills": "upstream/anthropics",
+    "trailofbits/skills": "upstream/trailofbits",
+}
 
 
 def err(msg: str) -> None:
@@ -116,8 +129,15 @@ def check_skill(name: str, path: Path, entry: dict) -> None:
         err(f"{name}: frontmatter name '{fm.get('name')}' != directory '{name}'")
     meta = fm.get("metadata") or {}
     strategy = meta.get("strategy")
-    if strategy != entry.get("layer") and entry.get("layer") == "utility" and strategy != "utility":
+    layer = entry.get("layer")
+    if layer == "utility" and strategy != "utility":
         err(f"{name}: utility layer requires strategy utility")
+    elif layer == "core" and strategy != "wrap":
+        err(f"{name}: core layer requires strategy wrap")
+    elif layer == "extended" and strategy not in {"merge", "sequence", "standalone"}:
+        err(f"{name}: extended layer requires merge, sequence, or standalone strategy")
+    elif strategy not in VALID_STRATEGIES:
+        err(f"{name}: invalid strategy {strategy!r}")
     if meta.get("phase") != entry.get("phase"):
         err(f"{name}: metadata.phase mismatch with registry")
     if meta.get("tier") != entry.get("tier"):
@@ -174,6 +194,57 @@ def check_skill(name: str, path: Path, entry: dict) -> None:
         if "write_file" in tools:
             err(f"{name}: read_only=true but write_file in allowed_tools")
 
+    for ref in REF_LINK_RE.findall(content):
+        ref_path = path.parent / ref
+        if not ref_path.exists():
+            err(f"{name}: unresolved reference link {ref}")
+
+
+def resolve_compose_path(entry: dict) -> Path | None:
+    t = entry.get("type")
+    if t == "local":
+        return ROOT / entry["path"]
+    if t == "speckit":
+        return ROOT / "upstream/speckit" / entry["path"]
+    if t == "external":
+        sub = SUBMODULE_MAP.get(entry.get("repo", ""))
+        if sub:
+            return ROOT / sub / entry["path"]
+    return None
+
+
+def check_upstream_paths(registry: dict) -> None:
+    for name, entry in registry.get("commands", {}).items():
+        for compose in entry.get("composes", []):
+            if compose.get("type") == "speckit-extension":
+                continue
+            path = resolve_compose_path(compose)
+            if path is None:
+                continue
+            if not path.exists():
+                err(f"{name}: upstream path missing: {path.relative_to(ROOT)}")
+    for preset_name, preset in registry.get("presets", {}).items():
+        for compose in preset.get("composes", []):
+            path = resolve_compose_path(compose)
+            if path and not path.exists():
+                err(f"preset {preset_name}: upstream path missing: {path.relative_to(ROOT)}")
+
+
+def check_hooks(registry: dict) -> None:
+    reg_cmds = registry.get("commands", {})
+    for hook_name, entries in registry.get("hooks", {}).items():
+        if not isinstance(entries, list):
+            err(f"hook {hook_name}: must be a list")
+            continue
+        for entry in entries:
+            cmd = entry.get("command", "")
+            if not cmd.startswith("nb."):
+                err(f"hook {hook_name}: invalid command ref {cmd!r}")
+                continue
+            cmd_name = cmd.split(".", 1)[1]
+            if cmd_name not in reg_cmds:
+                err(f"hook {hook_name}: unknown command {cmd_name}")
+
 
 def check_governance(registry: dict) -> None:
     today = date.today()
@@ -192,6 +263,67 @@ def check_governance(registry: dict) -> None:
                 err(f"{name}: invalid review_by date {rb}")
 
 
+def _workflow_meta(wf: dict) -> tuple[dict, list]:
+    workflow = wf.get("workflow", wf)
+    steps = wf.get("steps", workflow.get("steps", []))
+    return workflow, steps
+
+
+def check_workflow_schema(wf_file: Path, wf: dict, reg_cmds: set[str]) -> int:
+    gate_count = 0
+    workflow, steps = _workflow_meta(wf)
+    schema_version = wf.get("schema_version")
+    if schema_version not in ("1.0", "1", 1, 1.0):
+        err(f"{wf_file.name}: missing or invalid schema_version")
+    if not workflow.get("id"):
+        err(f"{wf_file.name}: missing workflow.id")
+    if not workflow.get("name"):
+        err(f"{wf_file.name}: missing workflow.name")
+    version = workflow.get("version", "")
+    if not re.match(r"^\d+\.\d+\.\d+$", str(version)):
+        err(f"{wf_file.name}: workflow.version must be semver (got {version!r})")
+    profile = workflow.get("hooks_profile")
+    if profile and profile not in VALID_HOOK_PROFILES:
+        err(f"{wf_file.name}: invalid hooks_profile {profile}")
+    if not isinstance(steps, list) or not steps:
+        err(f"{wf_file.name}: steps must be a non-empty list")
+        return gate_count
+
+    for step in steps:
+        if not isinstance(step, dict):
+            err(f"{wf_file.name}: step must be a mapping")
+            continue
+        step_id = step.get("id")
+        if not step_id:
+            err(f"{wf_file.name}: step missing id")
+            continue
+        step_type = step.get("type", "command")
+        if step_type not in VALID_STEP_TYPES:
+            err(f"{wf_file.name}: step {step_id} has invalid type {step_type!r}")
+            continue
+        if step_type == "gate":
+            gate_count += 1
+            if not step.get("message"):
+                err(f"{wf_file.name}: gate {step_id} missing message")
+            options = step.get("options", ["approve", "reject"])
+            if not isinstance(options, list) or not options:
+                err(f"{wf_file.name}: gate {step_id} options must be non-empty list")
+            on_reject = step.get("on_reject", "abort")
+            if on_reject not in ("abort", "skip", "retry"):
+                err(f"{wf_file.name}: gate {step_id} invalid on_reject {on_reject!r}")
+        elif step_type == "command":
+            if not step.get("command"):
+                err(f"{wf_file.name}: command step {step_id} missing command")
+            cmd = step.get("command", "")
+            if cmd.startswith("nb."):
+                cmd_name = cmd.split(".", 1)[1]
+                if cmd_name not in reg_cmds:
+                    err(f"{wf_file.name}: unknown command {cmd_name}")
+        if "continue_on_error" in step and not isinstance(step["continue_on_error"], bool):
+            err(f"{wf_file.name}: step {step_id} continue_on_error must be boolean")
+    return gate_count
+
+
 def check_bundle_and_workflows(registry: dict) -> None:
     bundle_path = ROOT / "bundle.yml"
     if not bundle_path.exists():
@@ -199,6 +331,17 @@ def check_bundle_and_workflows(registry: dict) -> None:
         return
     with open(bundle_path) as f:
         bundle = yaml.safe_load(f)
+    provides = bundle.get("provides", bundle.get("components", {}))
+    ext_manifest = ROOT / "extensions" / "nubo-skills" / "extension.yml"
+    if not ext_manifest.exists():
+        err("extensions/nubo-skills/extension.yml missing — run scripts/generate_skills.py")
+    bundle_exts = [e["id"] for e in provides.get("extensions", [])]
+    if "nubo-skills" in bundle_exts and not ext_manifest.exists():
+        err("bundle.yml references nubo-skills extension but manifest is missing")
+    for preset_id in (p["id"] for p in provides.get("presets", [])):
+        preset_file = ROOT / "presets" / preset_id / "preset.yml"
+        if not preset_file.exists():
+            err(f"bundle preset {preset_id} missing at presets/{preset_id}/preset.yml")
     wf_reg_path = ROOT / "workflows" / "registry.yml"
     if not wf_reg_path.exists():
         err("workflows/registry.yml missing")
@@ -209,26 +352,28 @@ def check_bundle_and_workflows(registry: dict) -> None:
         wf_file = ROOT / "workflows" / f"{wf_id}.yml"
         if not wf_file.exists():
             err(f"workflow file missing: {wf_file.name}")
-    bundle_wfs = [w["id"] for w in bundle.get("provides", {}).get("workflows", [])]
+    bundle_wfs = [w["id"] for w in provides.get("workflows", [])]
     for wf_id in wf_reg.get("workflows", {}):
         if wf_id not in bundle_wfs:
             err(f"workflow {wf_id} not in bundle.yml")
 
     reg_cmds = set(registry.get("commands", {}))
+    wf_reg_gates = {
+        wf_id: meta.get("gates")
+        for wf_id, meta in wf_reg.get("workflows", {}).items()
+    }
     for wf_file in (ROOT / "workflows").glob("nb-*.yml"):
         with open(wf_file) as f:
             wf = yaml.safe_load(f)
-        profile = wf.get("hooks_profile")
-        if profile and profile not in VALID_HOOK_PROFILES:
-            err(f"{wf_file.name}: invalid hooks_profile {profile}")
-        for step in wf.get("steps", []):
-            if step.get("type") == "gate" and not step.get("approvers"):
-                err(f"{wf_file.name}: gate step {step.get('id')} missing approvers")
-            cmd = step.get("command", "")
-            if cmd.startswith("nb."):
-                cmd_name = cmd.split(".", 1)[1]
-                if cmd_name not in reg_cmds:
-                    err(f"{wf_file.name}: unknown command {cmd_name}")
+        workflow, _ = _workflow_meta(wf)
+        wf_id = workflow.get("id") or wf.get("id")
+        gate_count = check_workflow_schema(wf_file, wf, reg_cmds)
+        expected_gates = wf_reg_gates.get(wf_id)
+        if expected_gates is not None and gate_count != expected_gates:
+            err(
+                f"{wf_file.name}: gate count {gate_count} != "
+                f"workflows/registry.yml gates {expected_gates}"
+            )
 
 
 def check_lock(registry: dict) -> None:
@@ -238,9 +383,47 @@ def check_lock(registry: dict) -> None:
         return
     with open(lock_path) as f:
         lock = yaml.safe_load(f) or {}
-    for name in registry.get("commands", {}):
-        if name not in lock:
+
+    commands_lock = lock.get("commands", lock)
+    presets_lock = lock.get("presets", {})
+
+    for name, entry in registry.get("commands", {}).items():
+        if name not in commands_lock:
             warn(f"{name}: missing from nubo-skills.lock")
+            continue
+        _verify_lock_compose(name, entry.get("composes", []), commands_lock[name].get("composes", []))
+
+    for preset_name, preset in registry.get("presets", {}).items():
+        if preset_name not in presets_lock:
+            warn(f"preset {preset_name}: missing from nubo-skills.lock")
+            continue
+        _verify_lock_compose(
+            f"preset:{preset_name}",
+            preset.get("composes", []),
+            presets_lock[preset_name].get("composes", []),
+        )
+
+
+def _verify_lock_compose(owner: str, composes: list, locked: list) -> None:
+    by_name = {c.get("upstream_name"): c for c in locked}
+    for compose in composes:
+        upstream_name = compose.get("upstream_name")
+        locked_entry = by_name.get(upstream_name)
+        if not locked_entry:
+            warn(f"{owner}: lock missing compose {upstream_name}")
+            continue
+        integrity = locked_entry.get("integrity", "")
+        if integrity == "sha256-missing":
+            err(f"{owner}: lock has sha256-missing for {upstream_name} — run scripts/sync-upstream.sh")
+        if integrity == "sha256-unverifiable":
+            if compose.get("type") != "speckit-extension":
+                err(f"{owner}: unexpected sha256-unverifiable for {upstream_name}")
+            continue
+        path = resolve_compose_path(compose)
+        if path and path.exists():
+            actual = "sha256-" + hashlib.sha256(path.read_bytes()).hexdigest()
+            if integrity != actual:
+                err(f"{owner}: lock integrity drift for {upstream_name} — run scripts/sync-upstream.sh")
 
 
 def main() -> int:
@@ -251,6 +434,8 @@ def main() -> int:
         entry = registry.get("commands", {}).get(name, {})
         check_skill(name, path, entry)
     check_governance(registry)
+    check_upstream_paths(registry)
+    check_hooks(registry)
     check_bundle_and_workflows(registry)
     check_lock(registry)
 

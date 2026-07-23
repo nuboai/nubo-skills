@@ -1,0 +1,75 @@
+schema_version: '1.0'
+extension:
+  id: nubo-skills
+  name: Nubo Skills
+  version: 1.0.0
+  description: Governed nb-{command} skills for the full Nubo SDLC pipeline
+  author: Nubo SDLC Team
+  repository: https://github.com/nuboai/nubo-skills
+  license: Proprietary
+requires:
+  speckit_version: '>=0.8.5'
+provides:
+  commands:
+  - name: nb.nb-constitution
+    file: commands/core/nb-constitution/SKILL.md
+    description: Define or verify project-wide invariants and architecture rules.
+  - name: nb.nb-specify
+    file: commands/core/nb-specify/SKILL.md
+    description: Create or update a feature specification from requirements.
+  - name: nb.nb-clarify
+    file: commands/core/nb-clarify/SKILL.md
+    description: Clarify ambiguities in the current feature specification.
+  - name: nb.nb-plan
+    file: commands/core/nb-plan/SKILL.md
+    description: Design the technical approach and architecture for the feature.
+  - name: nb.nb-tasks
+    file: commands/core/nb-tasks/SKILL.md
+    description: Break the plan into ordered, actionable implementation tasks.
+  - name: nb.nb-implement
+    file: commands/core/nb-implement/SKILL.md
+    description: Implement the feature according to spec, plan, and tasks.
+  - name: nb.nb-analyze
+    file: commands/core/nb-analyze/SKILL.md
+    description: Analyze implementation against spec for gaps and conformance.
+  - name: nb.nb-converge
+    file: commands/core/nb-converge/SKILL.md
+    description: Iterate on gaps until spec and implementation converge.
+  - name: nb.nb-checklist
+    file: commands/core/nb-checklist/SKILL.md
+    description: Run final release checklist before shipping.
+  - name: nb.nb-interview
+    file: commands/extended/nb-interview/SKILL.md
+    description: Stakeholder interview and idea refinement before specification.
+  - name: nb.nb-review-code
+    file: commands/extended/nb-review-code/SKILL.md
+    description: Comprehensive code review covering quality, simplification, and performance.
+  - name: nb.nb-review-security
+    file: commands/extended/nb-review-security/SKILL.md
+    description: Security hardening review and static analysis.
+  - name: nb.nb-review-arch
+    file: commands/extended/nb-review-arch/SKILL.md
+    description: 'Architecture review: drift detection, impact preview, and contract
+      validation.'
+  - name: nb.nb-test
+    file: commands/extended/nb-test/SKILL.md
+    description: Browser and webapp testing for the implementation.
+  - name: nb.nb-deploy
+    file: commands/extended/nb-deploy/SKILL.md
+    description: Ship, CI/CD, versioning, observability, and deprecation lifecycle.
+  - name: nb.nb-mcp
+    file: commands/extended/nb-mcp/SKILL.md
+    description: Build MCP servers and tools following best practices.
+  - name: nb.nb-docs
+    file: commands/extended/nb-docs/SKILL.md
+    description: Generate documentation and architecture decision records.
+  - name: nb.nb-review-skill
+    file: commands/extended/nb-review-skill/SKILL.md
+    description: Review nubo-skills command definitions for governance compliance.
+  - name: nb.nb-debug
+    file: commands/utilities/nb-debug/SKILL.md
+    description: Debug failures and recover from errors reactively.
+tags:
+- nubo
+- governance
+- sdlc
