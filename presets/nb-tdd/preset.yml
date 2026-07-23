@@ -2,7 +2,7 @@ id: nb-tdd
 name: "Nubo TDD Methodology"
 version: "1.0.0"
 description: "Augment nb-implement with TDD and doubt-driven development"
-strategy: merge
+strategy: append
 target: nb-implement
 
 inject:

@@ -20,11 +20,11 @@ provides:
       priority: 50
     - id: nb-tdd
       version: "1.0.0"
-      strategy: merge
+      strategy: append
       priority: 60
     - id: nb-frontend
       version: "1.0.0"
-      strategy: merge
+      strategy: append
       priority: 60
     - id: architect-preview
       version: "1.0.0"
