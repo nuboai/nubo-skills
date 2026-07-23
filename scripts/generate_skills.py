@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -114,6 +115,126 @@ USER_PROMPT_COMMANDS = {
         ],
         "default": "deploy",
         "blocks": "Deployment execution",
+    },
+}
+
+ARCH_REFERENCE_GUIDES = {
+    "arch-guard-steps.md": """# Architecture Guard Steps
+
+Operational guide for step 1 of `nb-review-arch`. Full extension contract:
+`.specify/extensions/architecture-guard/commands/architecture-review.md`.
+
+## Delegate command
+
+`/speckit.architecture-guard.architecture-review`
+
+## Mode
+
+Read-only analysis. Do not modify source files. Output findings and non-blocking refactor tasks.
+
+## Inputs
+
+- Feature spec: `specs/{NNN}-{feature}/spec.md`
+- Plan and tasks: `specs/{NNN}-{feature}/plan.md`, `tasks.md`
+- Constitutions: `.specify/memory/constitution.md`, `.specify/memory/architecture_constitution.md`
+- Changed implementation files (when reviewing in-flight work)
+
+## Outputs to capture
+
+- Constitution drift findings with file/line evidence
+- Boundary and dependency violations
+- Non-blocking refactor task suggestions
+
+## Merge into `arch-review.md`
+
+Add a **Drift detection** section. Normalize each finding to:
+`severity`, `category`, `message`, `location`, `evidence`, `recommendation`.
+""",
+    "arch-preview-steps.md": """# Architect Preview Steps
+
+Operational guide for step 2 of `nb-review-arch`. Full preset contract:
+`.specify/presets/architect-preview/templates/commands/preview.md`.
+
+## Delegate command
+
+`/speckit.architect-preview`
+
+Pass the feature scope or change summary as arguments (e.g. plan summary, affected modules).
+
+## Mode
+
+Read-only impact analysis. Do not modify architecture memory or source files.
+
+## Inputs
+
+- Current feature artifacts under `specs/{NNN}-{feature}/`
+- Existing architecture memory under `.specify/memory/architecture*.md`
+- Optional: diff summary or list of affected components
+
+## Outputs to capture
+
+- Architectural impact areas (modules, boundaries, data flows)
+- Complexity and risk assessment
+- Coupling, migration, or operational risks
+
+## Merge into `arch-review.md`
+
+Add an **Impact preview** section. Summarize blast radius, risk level, and
+pre-implementation concerns before contract validation runs.
+""",
+    "arch-contract-steps.md": """# Architecture Contract Steps
+
+Operational guide for step 3 of `nb-review-arch`. Full extension contract:
+`.specify/extensions/arch/commands/speckit.arch.full-generate.md`.
+
+## Delegate command
+
+`/speckit.arch.full-generate`
+
+Use the full forward-generation workflow to validate or refresh the planning contract.
+
+## Mode
+
+Writes architecture memory only. Allowed targets:
+`.specify/memory/architecture*.md` (views and synthesis). Do not modify feature
+specs, plans, tasks, or source code.
+
+## Inputs
+
+- Validated findings from steps 1–2
+- Feature context from `specs/{NNN}-{feature}/`
+- Existing architecture memory under `.specify/memory/`
+
+## Outputs to capture
+
+- Updated `.specify/memory/architecture.md` synthesis (when validator passes)
+- View-level gaps recorded explicitly when evidence is insufficient
+- Validator `ready_gate` result and blocker codes
+
+## Merge into `arch-review.md`
+
+Add a **Contract validation** section. Record whether the contract was refreshed,
+which views changed, synthesis readiness, and any gaps blocking refresh.
+
+Respect the user prompt from `nb-review-arch`: only write contract updates when
+`apply-updates` is selected; otherwise report findings only.
+""",
+}
+
+GOVERNED_REFERENCE_ALIASES: dict[str, dict[str, tuple[str, str]]] = {
+    "nb-deploy": {
+        "deploy-shipping.md": ("Shipping And Launch", "shipping-and-launch.md"),
+        "deploy-cicd.md": ("CI/CD And Automation", "ci-cd-and-automation.md"),
+        "deploy-git.md": ("Git Workflow And Versioning", "git-workflow-and-versioning.md"),
+        "deploy-observability.md": (
+            "Observability And Instrumentation",
+            "observability-and-instrumentation.md",
+        ),
+        "deploy-deprecation.md": ("Deprecation And Migration", "deprecation-and-migration.md"),
+    },
+    "nb-review-code": {
+        "review-perf.md": ("Performance Optimization", "performance-optimization.md"),
+        "review-simplification.md": ("Code Simplification", "code-simplification.md"),
     },
 }
 
@@ -429,7 +550,7 @@ Run these extension commands sequentially and compile a unified report:
 
 1. `/speckit.architecture-guard.architecture-review` — Detect drift from architecture constitution.
 2. `/speckit.architect-preview` — Preview architectural impact and complexity.
-3. `/speckit.arch.generate` — Validate or update the architecture planning contract.
+3. `/speckit.arch.full-generate` — Validate or update the architecture planning contract.
 
 See [architecture guard steps](references/arch-guard-steps.md), [architect preview steps](references/arch-preview-steps.md), and [architecture contract steps](references/arch-contract-steps.md) for detailed procedures.
 
@@ -642,14 +763,58 @@ def render_skill(cmd: dict, registry_entry: dict, mode: str) -> str:
     return "\n".join(p for p in parts if p is not None)
 
 
-def write_references(cmd: dict) -> None:
-    name = cmd["name"]
-    base = ROOT / "commands" / cmd["layer"] / name / "references"
-    if name == "nb-review-arch":
-        base.mkdir(parents=True, exist_ok=True)
-        (base / "arch-guard-steps.md").write_text("# Architecture Guard Steps\n\nDetailed steps for architecture-guard extension.\n")
-        (base / "arch-preview-steps.md").write_text("# Architect Preview Steps\n\nDetailed steps for architect-preview extension.\n")
-        (base / "arch-contract-steps.md").write_text("# Architecture Contract Steps\n\nDetailed steps for spec-kit-arch extension.\n")
+REF_LINK_RE = re.compile(r"\]\((references/[^)]+)\)")
+
+
+def linked_references(skill_path: Path) -> set[str]:
+    return set(REF_LINK_RE.findall(skill_path.read_text()))
+
+
+def prune_orphan_references(skill_path: Path) -> None:
+    refs_dir = skill_path.parent / "references"
+    if not refs_dir.exists():
+        return
+    linked = linked_references(skill_path)
+    for ref_file in refs_dir.glob("*.md"):
+        rel = f"references/{ref_file.name}"
+        if rel not in linked:
+            ref_file.unlink()
+
+
+def governed_alias_body(title: str, canonical: str) -> str:
+    return f"""# {title}
+
+Progressive-disclosure alias for governed output mode.
+
+## Canonical procedure
+
+See [{title}]({canonical}) for the full sub-procedure.
+
+## When to use this file
+
+Governed-mode installs link short alias names for subagent routing.
+Follow the canonical reference above — do not duplicate its content here.
+
+## Subagent handoff
+
+Load the canonical reference, execute its procedure, and return findings scoped
+to the alias topic only.
+"""
+
+
+def write_references(cmd: dict, skill_path: Path, mode: str) -> None:
+    refs_dir = skill_path.parent / "references"
+    if cmd["name"] == "nb-review-arch":
+        refs_dir.mkdir(parents=True, exist_ok=True)
+        for filename, body in ARCH_REFERENCE_GUIDES.items():
+            (refs_dir / filename).write_text(body.rstrip() + "\n")
+    if mode == "governed":
+        aliases = GOVERNED_REFERENCE_ALIASES.get(cmd["name"], {})
+        if aliases:
+            refs_dir.mkdir(parents=True, exist_ok=True)
+            for alias, (title, canonical) in aliases.items():
+                (refs_dir / alias).write_text(governed_alias_body(title, canonical))
+    prune_orphan_references(skill_path)
 
 
 def parse_skill_description(skill_path: Path) -> str:
@@ -718,7 +883,7 @@ def main() -> None:
         path = ROOT / "commands" / cmd["layer"] / cmd["name"] / "SKILL.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(render_skill(cmd, registry_entry, mode))
-        write_references(cmd)
+        write_references(cmd, path, mode)
         print(f"generated {path.relative_to(ROOT)}")
     generate_extension()
 

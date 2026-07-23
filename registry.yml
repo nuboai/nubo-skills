@@ -192,7 +192,7 @@ commands:
       extension_id: arch
       ref: v1.2.2
       download_url: https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip
-      command: speckit.arch.generate
+      command: speckit.arch.full-generate
       upstream_name: arch
     review_by: '2027-06-01'
   nb-test:

@@ -56,6 +56,10 @@ VALID_STEP_TYPES = {
 }
 VALID_STRATEGIES = {"wrap", "merge", "sequence", "standalone", "utility"}
 REF_LINK_RE = re.compile(r"\]\((references/[^)]+)\)")
+MIN_LINKED_REF_LINES = 10
+STALE_COMPOSE_COMMANDS = {
+    "speckit.arch.generate": "speckit.arch.full-generate",
+}
 SUBMODULE_MAP = {
     "github/spec-kit": "upstream/speckit",
     "addyosmani/agent-skills": "upstream/addyosmani",
@@ -223,6 +227,21 @@ def check_skill(name: str, path: Path, entry: dict, mode: str) -> None:
         ref_path = path.parent / ref
         if not ref_path.exists():
             err(f"{name}: unresolved reference link {ref}")
+            continue
+        line_count = len([line for line in ref_path.read_text().splitlines() if line.strip()])
+        if line_count < MIN_LINKED_REF_LINES:
+            err(
+                f"{name}: linked reference {ref} is too short "
+                f"({line_count} non-empty lines, minimum {MIN_LINKED_REF_LINES})"
+            )
+
+    refs_dir = path.parent / "references"
+    if refs_dir.exists():
+        linked = set(REF_LINK_RE.findall(content))
+        for ref_file in refs_dir.glob("*.md"):
+            rel = f"references/{ref_file.name}"
+            if rel not in linked:
+                err(f"{name}: orphan reference file {rel} not linked from SKILL.md")
 
 
 def resolve_compose_path(entry: dict) -> Path | None:
@@ -236,6 +255,48 @@ def resolve_compose_path(entry: dict) -> Path | None:
         if sub:
             return ROOT / sub / entry["path"]
     return None
+
+
+def check_speckit_presets(registry: dict) -> None:
+    for name, entry in registry.get("commands", {}).items():
+        for compose in entry.get("composes", []):
+            if compose.get("type") != "speckit-preset":
+                continue
+            preset_id = compose.get("preset_id", "").strip()
+            if not preset_id:
+                err(f"{name}: speckit-preset missing preset_id")
+            command = compose.get("command", "").strip()
+            if not command:
+                err(f"{name}: speckit-preset {preset_id or '<unknown>'} missing command")
+            preset_path = ROOT / compose.get("path", "")
+            preset_yml = preset_path / "preset.yml"
+            if not preset_yml.exists():
+                err(f"{name}: speckit-preset missing preset.yml at {preset_path.relative_to(ROOT)}")
+                continue
+            with open(preset_yml) as f:
+                preset_meta = yaml.safe_load(f) or {}
+            if preset_meta.get("id") != preset_id:
+                err(
+                    f"{name}: speckit-preset id mismatch "
+                    f"(registry {preset_id!r} != preset.yml {preset_meta.get('id')!r})"
+                )
+            preview_cmd = preset_path / "templates" / "commands" / "preview.md"
+            if not preview_cmd.exists():
+                err(
+                    f"{name}: speckit-preset {preset_id} missing command template "
+                    f"{preview_cmd.relative_to(ROOT)}"
+                )
+
+
+def check_stale_compose_commands(registry: dict) -> None:
+    for name, entry in registry.get("commands", {}).items():
+        for compose in entry.get("composes", []):
+            command = compose.get("command", "").strip()
+            if command in STALE_COMPOSE_COMMANDS:
+                err(
+                    f"{name}: stale compose command {command!r} "
+                    f"(use {STALE_COMPOSE_COMMANDS[command]!r})"
+                )
 
 
 def check_speckit_extensions(registry: dict) -> None:
@@ -486,6 +547,8 @@ def main() -> int:
         entry = registry.get("commands", {}).get(name, {})
         check_skill(name, path, entry, mode)
     check_governance(registry)
+    check_stale_compose_commands(registry)
+    check_speckit_presets(registry)
     check_speckit_extensions(registry)
     check_upstream_paths(registry)
     check_hooks(registry)

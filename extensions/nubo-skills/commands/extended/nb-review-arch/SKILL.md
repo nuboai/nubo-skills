@@ -74,7 +74,7 @@ Run these extension commands sequentially and compile a unified report:
 
 1. `/speckit.architecture-guard.architecture-review` — Detect drift from architecture constitution.
 2. `/speckit.architect-preview` — Preview architectural impact and complexity.
-3. `/speckit.arch.generate` — Validate or update the architecture planning contract.
+3. `/speckit.arch.full-generate` — Validate or update the architecture planning contract.
 
 See [architecture guard steps](references/arch-guard-steps.md), [architect preview steps](references/arch-preview-steps.md), and [architecture contract steps](references/arch-contract-steps.md) for detailed procedures.
 

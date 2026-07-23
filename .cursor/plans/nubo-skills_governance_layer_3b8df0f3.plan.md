@@ -359,7 +359,7 @@ commands:
       - type: speckit-extension
         extension: "bigsmartben/spec-kit-arch"
         ref: "v1.0.0"
-        command: "/speckit.arch.generate"
+        command: "/speckit.arch.full-generate"
     review_by: "2027-06-01"
 
 # Hook wiring (generated into .specify/extensions.yml at install time)
@@ -842,7 +842,7 @@ Run these extension commands sequentially and compile a unified report:
 2. `/speckit.architect-preview`
    Preview architectural impact and complexity of proposed changes. Record risk assessment.
 
-3. `/speckit.arch.generate`
+3. `/speckit.arch.full-generate`
    Validate or update the architecture planning contract at `.specify/memory/architecture.md`.
 
 Combine outputs into a single architecture review report.
