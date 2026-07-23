@@ -67,9 +67,10 @@ pip install -r requirements.txt
 ./scripts/install.sh --speckit --agent cursor-agent
 ```
 
-`install.sh` registers extensions via the `specify` CLI when available:
-- `nubo-skills` — `specify extension add nubo-skills --dev <repo>/extensions/nubo-skills`
-- Community deps — `specify extension add <id> --from <pinned-release.zip>` (architecture-guard, architect-preview, arch)
+`install.sh` bootstraps SpecKit when available:
+- `nubo-skills` — vendored copy under `.specify/extensions/nubo-skills/` (command namespace uses `nb.*`)
+- Community extensions — `specify extension add <id> --from <pinned-release.zip>` (architecture-guard, arch)
+- `architect-preview` — vendored preset under `.specify/presets/architect-preview/`
 
 Optional: add the curated extension catalog so `specify extension add <id>` works without `--from`:
 
@@ -103,7 +104,7 @@ All commands live under `commands/{core,extended,utilities}/nb-{command}/SKILL.m
 | `nb-interview` | specify | addyosmani (interview-me, idea-refine) |
 | `nb-review-code` | review | addyosmani (code-review, simplification, perf) |
 | `nb-review-security` | review | addyosmani + trailofbits (semgrep) |
-| `nb-review-arch` | review | SpecKit extensions (architecture-guard, architect-preview, arch) |
+| `nb-review-arch` | review | SpecKit extensions (architecture-guard, arch) + architect-preview preset |
 | `nb-test` | test | addyosmani (browser-testing) + anthropics (webapp-testing) |
 | `nb-deploy` | deploy | addyosmani (shipping, CI/CD, observability, git, deprecation) |
 | `nb-mcp` | implement | anthropics (mcp-builder) |

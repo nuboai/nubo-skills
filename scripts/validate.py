@@ -232,6 +232,11 @@ def check_upstream_paths(registry: dict) -> None:
         for compose in entry.get("composes", []):
             if compose.get("type") == "speckit-extension":
                 continue
+            if compose.get("type") == "speckit-preset":
+                path = ROOT / compose.get("path", "")
+                if not path.exists():
+                    err(f"{name}: preset path missing: {path.relative_to(ROOT)}")
+                continue
             path = resolve_compose_path(compose)
             if path is None:
                 continue
@@ -432,6 +437,13 @@ def _verify_lock_compose(owner: str, composes: list, locked: list) -> None:
         if integrity == "sha256-unverifiable":
             if compose.get("type") != "speckit-extension":
                 err(f"{owner}: unexpected sha256-unverifiable for {upstream_name}")
+            continue
+        if compose.get("type") == "speckit-preset":
+            path = ROOT / compose.get("path", "")
+            if path.exists() and (path / "preset.yml").exists():
+                actual = "sha256-" + hashlib.sha256((path / "preset.yml").read_bytes()).hexdigest()
+                if integrity != actual:
+                    err(f"{owner}: lock integrity drift for {upstream_name} — run scripts/sync-upstream.sh")
             continue
         path = resolve_compose_path(compose)
         if path and path.exists():

@@ -22,25 +22,6 @@
       "tags": ["architecture", "governance", "nubo-curated"],
       "verified": true
     },
-    "architect-preview": {
-      "name": "Architect Impact Previewer",
-      "id": "architect-preview",
-      "version": "1.0.0",
-      "description": "Predicts architectural impact, complexity, and risks of proposed changes before implementation.",
-      "author": "Umme Habiba",
-      "license": "MIT",
-      "download_url": "https://github.com/UmmeHabiba1312/spec-kit-architect-preview/archive/refs/tags/v1.0.0.zip",
-      "repository": "https://github.com/UmmeHabiba1312/spec-kit-architect-preview",
-      "requires": {
-        "speckit_version": ">=0.1.0"
-      },
-      "provides": {
-        "commands": 1,
-        "hooks": 0
-      },
-      "tags": ["architecture", "preview", "nubo-curated"],
-      "verified": true
-    },
     "arch": {
       "name": "Architecture Workflow",
       "id": "arch",

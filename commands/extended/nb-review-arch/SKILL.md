@@ -52,8 +52,8 @@ Verify the following SpecKit extensions are installed (auto-installed by `script
 
 1. Check `.specify/extensions/architecture-guard/` exists.
    If missing: `specify extension add architecture-guard --from https://github.com/DyanGalih/spec-kit-architecture-guard/archive/refs/tags/v1.15.0.zip`
-2. Check `.specify/extensions/architect-preview/` exists.
-   If missing: `specify extension add architect-preview --from https://github.com/UmmeHabiba1312/spec-kit-architect-preview/archive/refs/tags/v1.0.0.zip`
+2. Check `.specify/presets/architect-preview/preset.yml` exists.
+   If missing: re-run `scripts/install.sh` (vendored preset with schema_version fix).
 3. Check `.specify/extensions/arch/` exists.
    If missing: `specify extension add arch --from https://github.com/bigsmartben/spec-kit-arch/archive/refs/tags/v1.2.2.zip`
 

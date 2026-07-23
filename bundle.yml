@@ -26,13 +26,15 @@ provides:
       version: "1.0.0"
       strategy: merge
       priority: 60
+    - id: architect-preview
+      version: "1.0.0"
+      strategy: wrap
+      priority: 55
   extensions:
     - id: nubo-skills
       version: "1.0.0"
     - id: architecture-guard
       version: "1.15.0"
-    - id: architect-preview
-      version: "1.0.0"
     - id: arch
       version: "1.2.2"
   workflows:

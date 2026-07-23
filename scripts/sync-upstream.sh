@@ -129,6 +129,17 @@ def lock_compose(entry: dict) -> dict:
             "resolved_ref": declared_ref,
             "integrity": UNVERIFIABLE_INTEGRITY,
         }
+    if entry.get("type") == "speckit-preset":
+        path = ROOT / entry.get("path", "")
+        integrity = "sha256-missing"
+        if path.exists() and (path / "preset.yml").exists():
+            integrity = sha256_file(path / "preset.yml")
+        return {
+            "upstream_name": upstream_name,
+            "preset_id": entry.get("preset_id", ""),
+            "resolved_ref": declared_ref,
+            "integrity": integrity,
+        }
     path = resolve_upstream_path(entry)
     integrity = "sha256-missing"
     resolved_ref = declared_ref
