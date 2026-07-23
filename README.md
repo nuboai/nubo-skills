@@ -17,10 +17,17 @@ Projects should not install upstream skills directly. Depend on this repo instea
 
 ### SpecKit projects (primary)
 
-Install the full SDLC bundle:
+Register the bundle catalog, then install the full SDLC bundle:
 
 ```bash
+specify bundle catalog add https://raw.githubusercontent.com/nuboai/nubo-skills/master/bundles/catalog.json --id nubo-skills
 specify bundle install nb-sdlc-full
+```
+
+Or install from a local clone:
+
+```bash
+specify bundle install /path/to/nubo-skills/bundle.yml
 ```
 
 Run a scenario workflow:
@@ -127,6 +134,7 @@ nubo-skills/
 ├── registry.yml              # Command catalog, composition, hooks, presets
 ├── nubo-skills.lock          # Pinned SHA256 hashes (generated)
 ├── bundle.yml                # SpecKit bundle definition (nb-sdlc-full)
+├── bundles/catalog.json      # SpecKit bundle catalog for discovery
 ├── commands/
 │   ├── core/                 # 9 SpecKit-wrapped commands
 │   ├── extended/             # 9 merged upstream commands

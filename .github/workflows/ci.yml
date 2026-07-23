@@ -19,6 +19,7 @@ jobs:
       - run: pip install pyyaml
       - run: chmod +x scripts/*.sh
       - run: ./scripts/validate.sh
+      - run: ./scripts/test_install.sh
 
   skillspector:
     runs-on: ubuntu-latest

@@ -34,6 +34,7 @@ import json
 import shutil
 import sys
 from pathlib import Path
+
 import yaml
 
 root, agents, phases, auto, target = sys.argv[1:6]
@@ -42,14 +43,61 @@ target = Path(target)
 registry = yaml.safe_load((root / "registry.yml").read_text())
 agents_cfg = yaml.safe_load((root / "integrations/agents.yml").read_text())["agents"]
 
-if auto:
+auto_enabled = str(auto).strip().lower() in ("true", "1", "yes")
+if auto_enabled:
     selected = list(agents_cfg.keys())
-elif agents:
+elif agents.strip():
     selected = [a.strip() for a in agents.split(",") if a.strip()]
 else:
     selected = ["cursor-agent"]
 
 phase_filter = None if phases == "all" else set(p.strip() for p in phases.split(","))
+
+CONTEXT_MARKERS = {
+    "claude": "nubo-skills governance",
+    "codex": "nubo-skills governance",
+    "gemini": "nubo-skills governance",
+    "copilot": "nubo-skills governance",
+}
+
+
+def install_context(agent: str) -> None:
+    cfg = agents_cfg.get(agent, {})
+    context_rel = cfg.get("context_file")
+    if not context_rel:
+        return
+
+    context_src = root / "integrations" / "context-files"
+    context_dest = target / context_rel
+
+    if agent == "cursor-agent":
+        context_dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(context_src / "cursor.md", context_dest)
+        return
+
+    mapping = {
+        "claude": "claude.md",
+        "codex": "codex.md",
+        "gemini": "gemini.md",
+        "copilot": "copilot.md",
+    }
+    src_name = mapping.get(agent)
+    if not src_name:
+        return
+
+    marker = CONTEXT_MARKERS.get(agent, "nubo-skills governance")
+    context_dest.parent.mkdir(parents=True, exist_ok=True)
+    if context_dest.exists():
+        existing = context_dest.read_text()
+        if marker in existing:
+            return
+        with context_dest.open("a") as handle:
+            if existing and not existing.endswith("\n"):
+                handle.write("\n")
+            handle.write((context_src / src_name).read_text())
+    else:
+        shutil.copy2(context_src / src_name, context_dest)
+
 
 installed = []
 for name, entry in registry["commands"].items():
@@ -71,17 +119,19 @@ for name, entry in registry["commands"].items():
         shutil.copytree(src, dest)
         installed.append({"agent": agent, "command": name, "path": str(dest)})
 
-# Generate extensions.yml hooks
+for agent in selected:
+    install_context(agent)
+
 hooks_out = {"hooks": {}}
 for hook, entries in registry.get("hooks", {}).items():
     hooks_out["hooks"][hook] = []
-    for e in entries:
+    for entry in entries:
         hooks_out["hooks"][hook].append({
-            "command": e["command"],
+            "command": entry["command"],
             "extension": "nubo-skills",
             "enabled": True,
-            "optional": e.get("optional", True),
-            "priority": e.get("priority", 10),
+            "optional": entry.get("optional", True),
+            "priority": entry.get("priority", 10),
             "condition": None,
         })
 
@@ -92,9 +142,9 @@ existing = {}
 if ext_yml.exists():
     existing = yaml.safe_load(ext_yml.read_text()) or {}
 merged = existing.get("hooks", {})
-for k, v in hooks_out["hooks"].items():
-    merged.setdefault(k, [])
-    merged[k] = [h for h in merged[k] if h.get("extension") != "nubo-skills"] + v
+for key, value in hooks_out["hooks"].items():
+    merged.setdefault(key, [])
+    merged[key] = [h for h in merged[key] if h.get("extension") != "nubo-skills"] + value
 ext_yml.write_text(yaml.dump({"hooks": merged}, sort_keys=False))
 
 state = {
@@ -102,29 +152,6 @@ state = {
     "agents": selected,
     "phases": phases,
 }
-(target / ".nubo-skills.state.json").write_text(json.dumps(state, indent=2))
+(target / ".nubo-skills.state.json").write_text(json.dumps(state, indent=2) + "\n")
 print(f"Installed {len(installed)} skill(s) across {len(selected)} agent(s)")
 PY
-
-# Install governance context files
-for agent in $(echo "$AGENTS" | tr ',' ' '); do
-  [[ -z "$agent" ]] && continue
-  case "$agent" in
-    cursor-agent)
-      mkdir -p "$TARGET_DIR/.cursor/rules"
-      cp "$ROOT/integrations/context-files/cursor.md" "$TARGET_DIR/.cursor/rules/nubo-governance.md"
-      ;;
-    claude)
-      touch "$TARGET_DIR/CLAUDE.md"
-      if ! grep -q "nubo-skills governance" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
-        cat "$ROOT/integrations/context-files/claude.md" >> "$TARGET_DIR/CLAUDE.md"
-      fi
-      ;;
-    codex)
-      touch "$TARGET_DIR/AGENTS.md"
-      if ! grep -q "nubo-skills governance" "$TARGET_DIR/AGENTS.md" 2>/dev/null; then
-        cat "$ROOT/integrations/context-files/codex.md" >> "$TARGET_DIR/AGENTS.md"
-      fi
-      ;;
-  esac
-done

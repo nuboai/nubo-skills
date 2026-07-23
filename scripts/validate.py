@@ -209,7 +209,7 @@ def check_bundle_and_workflows(registry: dict) -> None:
         wf_file = ROOT / "workflows" / f"{wf_id}.yml"
         if not wf_file.exists():
             err(f"workflow file missing: {wf_file.name}")
-    bundle_wfs = [w["id"] for w in bundle.get("components", {}).get("workflows", [])]
+    bundle_wfs = [w["id"] for w in bundle.get("provides", {}).get("workflows", [])]
     for wf_id in wf_reg.get("workflows", {}):
         if wf_id not in bundle_wfs:
             err(f"workflow {wf_id} not in bundle.yml")
